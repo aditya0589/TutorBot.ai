@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Quiz - TutorBot.ai</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar" style="background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); position: sticky; top: 0; z-index: 1000;">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+            <span class="logo" style="color: #00ffcc; font-size: 1.5rem; font-weight: bold; text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;">🧠 TutorBot.ai</span>
+            <div class="nav-links" style="display: flex; gap: 1.5rem;">
+                <a href="/home" style="color: #fff; text-decoration: none; font-size: 1rem; transition: color 0.3s; padding: 0.5rem 1rem;">Home</a>
+                <a href="/about" style="color: #fff; text-decoration: none; font-size: 1rem; transition: color 0.3s; padding: 0.5rem 1rem;">About</a>
+                <a href="/dashboard" style="color: #fff; text-decoration: none; font-size: 1rem; transition: color 0.3s; padding: 0.5rem 1rem;">Dashboard</a>
+                <a href="/logout" style="color: #fff; text-decoration: none; font-size: 1rem; transition: color 0.3s; padding: 0.5rem 1rem;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="quiz-container" style="min-height: calc(100vh - 60px); display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #1a1a1a, #2d2d2d); padding: 2rem 0;">
+        <div class="container" style="max-width: 600px; margin: 0 auto; padding: 0 1rem;">
+            <div class="quiz-header" style="text-align: center; margin-bottom: 2rem;">
+                <h1 style="color: #fff; font-size: 2.5rem; text-shadow: 0 0 10px #00ffcc; margin-bottom: 0.5rem; font-weight: 700;">AI-Powered Quiz Setup</h1>
+                <p style="color: #ccc; font-size: 1.1rem; margin: 0; font-weight: 300;">Configure your quiz parameters to start testing your knowledge</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="{{ 'success-message' if category == 'success' else 'error-message' }}" style="padding: 1rem; margin-bottom: 1rem; border-radius: 10px; text-align: center; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(5px); border: 1px solid {% if category == 'success' %}#00ff00{% else %}#ff0000{% endif %}; color: {% if category == 'success' %}#00ff00{% else %}#ff0000{% endif %};">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="quiz-form-card" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); padding: 2rem; box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);">
+                <form action="{{ url_for('quiz') }}" method="POST" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="subject" style="color: #fff; font-size: 1.1rem; font-weight: 500; margin-bottom: 0.25rem;">Subject</label>
+                        <select id="subject" name="subject" required style="padding: 0.75rem; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 5px; background: rgba(0, 0, 0, 0.5); color: #fff; font-size: 1rem; transition: border-color 0.3s; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="%23fff"><path d="M7.293 4.293a1 1 0 0 1 1.414 1.414L6.414 9l2.293 2.293a1 1 0 1 1-1.414 1.414L5 10.414l-2.293 2.293a1 1 0 1 1-1.414-1.414L3.586 9 1.293 6.707a1 1 0 0 1 1.414-1.414L5 7.586l2.293-2.293z"/></svg>'); background-repeat: no-repeat; background-position: right 0.75rem center; cursor: pointer;">
+                            <option value="" disabled selected style="color: #888;">Select a subject</option>
+                            <option value="dsa">Data Structures & Algorithms</option>
+                            <option value="ml">Machine Learning</option>
+                            <option value="dbms">Database Systems</option>
+                            <option value="os">Operating Systems</option>
+                            <option value="webdev">Web Development</option>
+                            <option value="networks">Computer Networks</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="level" style="color: #fff; font-size: 1.1rem; font-weight: 500; margin-bottom: 0.25rem;">Difficulty Level</label>
+                        <select id="level" name="level" required style="padding: 0.75rem; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 5px; background: rgba(0, 0, 0, 0.5); color: #fff; font-size: 1rem; transition: border-color 0.3s; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="%23fff"><path d="M7.293 4.293a1 1 0 0 1 1.414 1.414L6.414 9l2.293 2.293a1 1 0 1 1-1.414 1.414L5 10.414l-2.293 2.293a1 1 0 1 1-1.414-1.414L3.586 9 1.293 6.707a1 1 0 0 1 1.414-1.414L5 7.586l2.293-2.293z"/></svg>'); background-repeat: no-repeat; background-position: right 0.75rem center; cursor: pointer;">
+                            <option value="" disabled selected style="color: #888;">Select difficulty</option>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="topic" style="color: #fff; font-size: 1.1rem; font-weight: 500; margin-bottom: 0.25rem;">Topic</label>
+                        <select id="topic" name="topic" required style="padding: 0.75rem; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 5px; background: rgba(0, 0, 0, 0.5); color: #fff; font-size: 1rem; transition: border-color 0.3s; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="%23fff"><path d="M7.293 4.293a1 1 0 0 1 1.414 1.414L6.414 9l2.293 2.293a1 1 0 1 1-1.414 1.414L5 10.414l-2.293 2.293a1 1 0 1 1-1.414-1.414L3.586 9 1.293 6.707a1 1 0 0 1 1.414-1.414L5 7.586l2.293-2.293z"/></svg>'); background-repeat: no-repeat; background-position: right 0.75rem center; cursor: pointer;">
+                            <option value="" disabled selected style="color: #888;">Select a topic</option>
+                            {% for subject, subject_topics in topics.items() %}
+                                {% for topic in subject_topics %}
+                                    <option value="{{ topic }}" style="color: #fff;" {% if request.form.get('subject') == subject %} {% else %} hidden {% endif %}>{{ topic }}</option>
+                                {% endfor %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="num_questions" style="color: #fff; font-size: 1.1rem; font-weight: 500; margin-bottom: 0.25rem;">Number of Questions</label>
+                        <select id="num_questions" name="num_questions" required style="padding: 0.75rem; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 5px; background: rgba(0, 0, 0, 0.5); color: #fff; font-size: 1rem; transition: border-color 0.3s; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="%23fff"><path d="M7.293 4.293a1 1 0 0 1 1.414 1.414L6.414 9l2.293 2.293a1 1 0 1 1-1.414 1.414L5 10.414l-2.293 2.293a1 1 0 1 1-1.414-1.414L3.586 9 1.293 6.707a1 1 0 0 1 1.414-1.414L5 7.586l2.293-2.293z"/></svg>'); background-repeat: no-repeat; background-position: right 0.75rem center; cursor: pointer;">
+                            <option value="" disabled selected style="color: #888;">Select number of questions</option>
+                            <option value="5">5 Questions</option>
+                            <option value="10">10 Questions</option>
+                            <option value="15">15 Questions</option>
+                            <option value="20">20 Questions</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="auth-btn auth-btn-primary" style="padding: 0.75rem 2rem; background: #00ffcc; color: #1a1a1a; border: none; border-radius: 5px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background 0.3s, transform 0.2s; width: 100%; max-width: 200px; margin: 0 auto; display: block; box-shadow: 0 0 10px rgba(0, 255, 204, 0.5); &:hover { background: #00cc99; transform: translateY(-2px); }">
+                        Start Quiz
+                    </button>
+                </form>
+            </div>
+
+            {% if quiz_data and quiz_data.get('questions') %}
+                <div class="quiz-display" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); padding: 2rem; margin-top: 2rem; box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);">
+                    <h2 style="color: #fff; text-align: center; font-size: 2rem; text-shadow: 0 0 10px #00ffcc; margin-bottom: 1rem;">Quiz Time!</h2>
+                    <form method="POST" action="{{ url_for('submit_quiz') }}" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        {% for question in quiz_data.questions %}
+                            <div class="question-card" style="background: rgba(0, 0, 0, 0.3); padding: 1.5rem; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                                <p style="color: #fff; font-size: 1.1rem; margin-bottom: 1rem;">{{ loop.index }}. {{ question.question }}</p>
+                                {% for i in range(4) %}
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <input type="radio" id="q{{ loop.index }}_o{{ i }}" name="answer_{{ loop.index0 }}" value="{{ i }}" style="margin-right: 0.5rem; vertical-align: middle;" required>
+                                        <label for="q{{ loop.index }}_o{{ i }}" style="color: #ccc; font-size: 1rem; vertical-align: middle;">{{ 'abcd'[i] }}) {{ question.options[i] }}</label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="auth-btn auth-btn-primary" style="padding: 0.75rem 2rem; background: #00ffcc; color: #1a1a1a; border: none; border-radius: 5px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background 0.3s, transform 0.2s; width: 100%; max-width: 200px; margin: 0 auto; display: block; box-shadow: 0 0 10px rgba(0, 255, 204, 0.5); &:hover { background: #00cc99; transform: translateY(-2px); }">
+                            Submit Answers
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
