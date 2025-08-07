@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - TutorBot.ai</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">🧠 TutorBot.ai</div>
+            <div class="nav-links">
+                <a href="/home">Home</a>
+                <a href="#dashboard">Dashboard</a>
+                <a href="#subjects">Subjects</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+        <div class="container">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <h1>Welcome back, {{ user_name }}! 👋</h1>
+                <p>Continue your learning journey with AI-powered tutors</p>
+            </div>
+
+            <!-- Main Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Progress Overview -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-icon">📊</div>
+                        <h3 class="card-title">Learning Progress</h3>
+                    </div>
+                    <div class="card-content">
+                        <p>Track your progress across all subjects</p>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-number">5</span>
+                                <span class="stat-label">Subjects</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">87%</span>
+                                <span class="stat-label">Completion</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">23</span>
+                                <span class="stat-label">Sessions</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-icon">⚡</div>
+                        <h3 class="card-title">Quick Actions</h3>
+                    </div>
+                    <div class="card-content">
+                        <p>Start learning or review your progress</p>
+                        <div class="quick-actions">
+                            <a href="/session" class="action-btn">Start New Session</a>
+                            <a href="/review_notes" class="action-btn">Review Notes</a>
+                            <a href="/quiz" class="action-btn">Take Quiz</a>
+                            <a href="#" class="action-btn">View Progress</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-icon">🕒</div>
+                        <h3 class="card-title">Recent Activity</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="recent-activity">
+                            <div class="activity-item">
+                                <div class="activity-icon">📚</div>
+                                <div class="activity-content">
+                                    <div class="activity-title">Completed DSA Session</div>
+                                    <div class="activity-time">2 hours ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon">🧪</div>
+                                <div class="activity-content">
+                                    <div class="activity-title">Took ML Quiz</div>
+                                    <div class="activity-time">1 day ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon">💾</div>
+                                <div class="activity-content">
+                                    <div class="activity-title">Saved DBMS Notes</div>
+                                    <div class="activity-time">2 days ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subject Overview -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-icon">📖</div>
+                        <h3 class="card-title">Subjects Overview</h3>
+                    </div>
+                    <div class="card-content">
+                        <p>Your current learning subjects</p>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-number">DSA</span>
+                                <span class="stat-label">90% Complete</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">ML</span>
+                                <span class="stat-label">75% Complete</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">DBMS</span>
+                                <span class="stat-label">60% Complete</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">OS</span>
+                                <span class="stat-label">45% Complete</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <h4 class="sidebar-title">Available Subjects</h4>
+                    <ul class="subject-list">
+                        <li class="subject-item">📊 Data Structures & Algorithms</li>
+                        <li class="subject-item">🤖 Machine Learning</li>
+                        <li class="subject-item">💾 Database Management Systems</li>
+                        <li class="subject-item">⚙️ Operating Systems</li>
+                        <li class="subject-item">🌐 Web Development</li>
+                        <li class="subject-item">🔒 Computer Networks</li>
+                    </ul>
+                </div>
+
+                <div class="sidebar-section">
+                    <h4 class="sidebar-title">Quick Stats</h4>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-number">12</span>
+                            <span class="stat-label">Hours Learned</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">8</span>
+                            <span class="stat-label">Quizzes Taken</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">15</span>
+                            <span class="stat-label">Notes Saved</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add scroll effect to navbar
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.background = 'rgba(15, 15, 35, 0.98)';
+            } else {
+                navbar.style.background = 'rgba(15, 15, 35, 0.95)';
+            }
+        });
+    </script>
+</body>
+</html>
