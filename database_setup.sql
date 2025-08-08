@@ -1,3 +1,6 @@
+--> You will require MySQL for creating the database
+--> Database connection details are stored as environment variables
+
 --> Creation of the database
 CREATE DATABASE IF NOT EXISTS tutorbot;
 USE tutorbot;
