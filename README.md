@@ -33,3 +33,7 @@ It combines the power of Large Language Models (LLMs) with a full-stack web appl
 
 ### Other
 - Stripe (Subscription & Billing – planned)
+
+### The Developers
+- Y.Aditya
+- Viswanath Balla
