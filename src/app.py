@@ -8,6 +8,9 @@ from flask_mysqldb import MySQL
 import os
 from tutor import SubjectTutor
 from markdown import markdown as md  # Use markdown for rendering
+from dotenv import load_dotenv
+load_dotenv()
+
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -127,6 +130,33 @@ def session_page():
         flash('Please login first.', 'error')
         return redirect(url_for('login'))
     return render_template('session.html')
+
+def get_subjects_with_topics():
+    cursor = mysql.connection.cursor()
+
+    # Example structure: subjects table & topics table
+    cursor.execute("SELECT sub_id, sub_name FROM subjects")
+    subjects = cursor.fetchall()
+
+    data = []
+    for subj in subjects:
+        cursor.execute("SELECT topic_id, topic_name FROM topics WHERE sub_id=%s", (subj[0],))
+        topics = cursor.fetchall()
+        data.append({"sub_id": subj[0], "sub_name": subj[1], "topics": topics})
+    
+    print(data)
+    cursor.close()
+    return data
+
+@app.route('/progress_tracker')
+def progress_tracker():
+    if 'user_id' not in session:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+    
+    subjects_data = get_subjects_with_topics()
+    return render_template("progress_tracker.html", subjects=subjects_data)
+
 
 @app.route('/tutors/<subject>_tutor', methods=['GET', 'POST'])
 def tutor_page(subject):
