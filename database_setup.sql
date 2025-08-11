@@ -17,3 +17,16 @@ CREATE TABLE user_notes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+CREATE TABLE quiz_attempts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    quiz_no INT NOT NULL,
+    question TEXT NOT NULL,
+    option1 TEXT,
+    option2 TEXT,
+    option3 TEXT,
+    option4 TEXT,
+    correct_option INT,
+    user_option INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
