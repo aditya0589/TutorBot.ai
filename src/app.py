@@ -148,6 +148,7 @@ def get_subjects_with_topics():
     cursor.close()
     return data
 
+#tracking progress for each subject
 @app.route('/progress_tracker')
 def progress_tracker():
     if 'user_id' not in session:

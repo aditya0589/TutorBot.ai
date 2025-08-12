@@ -3,74 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progress Tracker - TutorBot.ai</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Progress Tracker</title>
     <style>
+        body {
+            background-color: #0f0f23;
+            font-family: Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+    
+        .navbar {
+            background: rgba(15, 15, 35, 0.95);
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: background 0.3s ease;
+        }
+    
         .main-content {
-            margin-top: 80px; /* Space for fixed navbar */
+            padding: 30px;
+            display: flex;               /* vertical stacking */
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+    
+        .subject-header {
+            background-color: #333;
             padding: 20px;
-            color: white;
+            border-radius: 10px;
+            width: 60%;
         }
-        .subject {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background: black;
-            color: white;
-        }
-        .subject h3 {
-            margin: 0 0 15px 0;
+    
+        .subject-header h3 {
+            margin: 0;
             color: white;
             font-size: 18px;
+            cursor: pointer;
         }
+    
         .topics {
-            display: block; /* Always show topics */
-            color: white;
+            display: none;
+            flex-direction: column;
+            margin-top: 10px;
         }
+    
+        .topics.show {
+            display: flex;
+        }
+    
         .topics label {
-            display: block;
             margin: 8px 0;
-            padding: 8px;
+            padding: 8px 12px;
             background: black;
             border-radius: 4px;
             cursor: pointer;
             color: white;
         }
-        .topics label:hover {
-            background: black;
-            color: white;
-        }
-        .topics input[type="checkbox"] {
+    
+        .custom-checkbox input {
             margin-right: 10px;
-        }
-        h2 {
-            color: white;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="container">
-            <div class="logo">🧠 TutorBot.ai</div>
-            <div class="nav-links">
-                <a href="/home">Home</a>
-                <a href="#dashboard">Dashboard</a>
-                <a href="#subjects">Subjects</a>
-                <a href="/logout">Logout</a>
-            </div>
-        </div>
-    </nav>
+    <div class="navbar">
+        <h1>Progress Tracker</h1>
+    </div>
 
-    <!-- Progress Tracker -->
     <div class="main-content">
-        <h2>Progress Tracker</h2>
         {% for subject in subjects %}
-            <div class="subject">
+            <div class="subject-header">
                 <h3>{{ subject.sub_name }}</h3>
                 <div class="topics">
                     {% for topic in subject.topics %}
-                        <label>
+                        <label class="custom-checkbox">
                             <input type="checkbox" name="topics" value="{{ topic[0] }}">
                             {{ topic[1] }}
                         </label>
@@ -81,15 +90,21 @@
     </div>
 
     <script>
-        // Add scroll effect to navbar
-        window.addEventListener('scroll', function() {
-            const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 50) {
-                navbar.style.background = 'rgba(15, 15, 35, 0.98)';
-            } else {
-                navbar.style.background = 'rgba(15, 15, 35, 0.95)';
-            }
+    document.querySelectorAll('.subject-header h3').forEach(header => {
+        header.addEventListener('click', () => {
+            const topics = header.parentElement.querySelector('.topics');
+
+            // Close all topics first
+            document.querySelectorAll('.topics').forEach(t => {
+                if (t !== topics) {
+                    t.classList.remove('show');
+                }
+            });
+
+            // Toggle the clicked one
+            topics.classList.toggle('show');
         });
-    </script>
+    });
+</script>
 </body>
 </html>
