@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Tracker</title>
+    <style>
+        body {
+            background-color: #0f0f23;
+            font-family: Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+    
+        .navbar {
+            background: rgba(15, 15, 35, 0.95);
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: background 0.3s ease;
+        }
+    
+        .main-content {
+            padding: 30px;
+            display: flex;               /* vertical stacking */
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+    
+        .subject-header {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            width: 60%;
+        }
+    
+        .subject-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+    
+        .topics {
+            display: none;
+            flex-direction: column;
+            margin-top: 10px;
+        }
+    
+        .topics.show {
+            display: flex;
+        }
+    
+        .topics label {
+            margin: 8px 0;
+            padding: 8px 12px;
+            background: black;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+        }
+    
+        .custom-checkbox input {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Progress Tracker</h1>
+    </div>
+
+    <div class="main-content">
+        {% for subject in subjects %}
+            <div class="subject-header">
+                <h3>{{ subject.sub_name }}</h3>
+                <div class="topics">
+                    {% for topic in subject.topics %}
+                        <label class="custom-checkbox">
+                            <input type="checkbox" name="topics" value="{{ topic[0] }}">
+                            {{ topic[1] }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+    document.querySelectorAll('.subject-header h3').forEach(header => {
+        header.addEventListener('click', () => {
+            const topics = header.parentElement.querySelector('.topics');
+
+            // Close all topics first
+            document.querySelectorAll('.topics').forEach(t => {
+                if (t !== topics) {
+                    t.classList.remove('show');
+                }
+            });
+
+            // Toggle the clicked one
+            topics.classList.toggle('show');
+        });
+    });
+</script>
+</body>
+</html>
