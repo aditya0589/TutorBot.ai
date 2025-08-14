@@ -7,15 +7,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
         body {
-            background-color: #1a1a1a;
-            color: #f8f9fa;
+            background-color: #1c0830; /* Dark blue background */
+            color: #e6f1ff; /* Light blue-gray text for contrast */
             font-family: Arial, sans-serif;
         }
         .container {
             margin-top: 20px;
             padding: 20px;
-            background-color: #2c2c2c;
+            background-color: #1c0830; /* Slightly lighter dark blue container */
             border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .flash-message {
             margin-bottom: 15px;
@@ -23,42 +24,57 @@
         .quiz-question {
             margin-bottom: 20px;
             padding: 15px;
-            background-color: #333;
+            background-color: rgba(36, 36, 54); /* Medium dark blue for questions */
             border-radius: 5px;
+            border-left: 4px solid #00aaff; /* Accent blue border */
+        }
+        .options-list {
+            margin-top: 10px;
         }
         .option {
             margin-left: 20px;
+            margin-bottom: 5px;
+            color: #b0c4de; /* Soft blue-gray for options */
         }
         label {
             margin-left: 5px;
+            color: #e6f1ff; /* Consistent text color for labels */
         }
         .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
+            background-color: #00aaff; /* Bright blue button */
+            border-color: #00aaff;
         }
         .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
+            background-color: #0090d0; /* Darker blue on hover */
+            border-color: #0090d0;
         }
         .btn-success {
-            background-color: #28a745;
+            background-color: #28a745; /* Green for success, consistent with Bootstrap */
             border-color: #28a745;
         }
         .btn-success:hover {
-            background-color: #218838;
+            background-color: #218838; /* Darker green on hover */
             border-color: #218838;
+        }
+        .btn-info {
+            background-color: #17a2b8; /* Cyan for info button */
+            border-color: #17a2b8;
+        }
+        .btn-info:hover {
+            background-color: #138496; /* Darker cyan on hover */
+            border-color: #138496;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #0a192f;">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('home') }}">🧠 TutorBot.ai</a>
+            <a class="navbar-brand" href="{{ url_for('home') }}" style="color: #e6f1ff;">🧠 TutorBot.ai</a>
             <div class="navbar-nav">
-                <a class="nav-link" href="{{ url_for('home') }}">Home</a>
-                <a class="nav-link" href="{{ url_for('about') }}">About</a>
-                <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
-                <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                <a class="nav-link" href="{{ url_for('home') }}" style="color: #b0c4de;">Home</a>
+                <a class="nav-link" href="{{ url_for('about') }}" style="color: #b0c4de;">About</a>
+                <a class="nav-link" href="{{ url_for('dashboard') }}" style="color: #b0c4de;">Dashboard</a>
+                <a class="nav-link" href="{{ url_for('logout') }}" style="color: #b0c4de;">Logout</a>
             </div>
         </div>
     </nav>
@@ -80,67 +96,66 @@
             {% endif %}
         {% endwith %}
 
-        <!-- Quiz Setup Form -->
         <form method="POST" action="{{ url_for('quiz') }}">
             <div class="mb-3">
                 <label for="subject" class="form-label">Subject</label>
-                <select class="form-select" id="subject" name="subject" required>
-                    <option value="" disabled selected>Select a subject</option>
-                    <option value="dsa">Data Structures & Algorithms</option>
-                    <option value="ml">Machine Learning</option>
-                    <option value="dbms">Database Systems</option>
-                    <option value="os">Operating Systems</option>
-                    <option value="webdev">Web Development</option>
-                    <option value="networks">Computer Networks</option>
+                <select class="form-select" id="subject" name="subject" required style="background-color: #1e2a44; color: #e6f1ff; border-color: #00aaff;">
+                    <option value="" disabled selected style="color: #b0c4de;">Select a subject</option>
+                    <option value="dsa" style="color: #e6f1ff;">Data Structures & Algorithms</option>
+                    <option value="ml" style="color: #e6f1ff;">Machine Learning</option>
+                    <option value="dbms" style="color: #e6f1ff;">Database Systems</option>
+                    <option value="os" style="color: #e6f1ff;">Operating Systems</option>
+                    <option value="webdev" style="color: #e6f1ff;">Web Development</option>
+                    <option value="networks" style="color: #e6f1ff;">Computer Networks</option>
                 </select>
             </div>
 
             <div class="mb-3">
                 <label for="level" class="form-label">Difficulty Level</label>
-                <select class="form-select" id="level" name="level" required>
-                    <option value="" disabled selected>Select difficulty</option>
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
+                <select class="form-select" id="level" name="level" required style="background-color: #1e2a44; color: #e6f1ff; border-color: #00aaff;">
+                    <option value="" disabled selected style="color: #b0c4de;">Select difficulty</option>
+                    <option value="beginner" style="color: #e6f1ff;">Beginner</option>
+                    <option value="intermediate" style="color: #e6f1ff;">Intermediate</option>
+                    <option value="advanced" style="color: #e6f1ff;">Advanced</option>
                 </select>
             </div>
 
             <div class="mb-3">
                 <label for="topic" class="form-label">Topic</label>
-                <input type="text" class="form-control" id="topic" name="topic" placeholder="e.g., Sorting Algorithms" required>
+                <input type="text" class="form-control" id="topic" name="topic" placeholder="Enter your topic (e.g., Sorting Algorithms)" required style="background-color: #1e2a44; color: #e6f1ff; border-color: #00aaff;">
             </div>
 
             <div class="mb-3">
                 <label for="num_questions" class="form-label">Number of Questions</label>
-                <select class="form-select" id="num_questions" name="num_questions" required>
-                    <option value="" disabled selected>Select number of questions</option>
-                    <option value="5">5 Questions</option>
-                    <option value="10">10 Questions</option>
-                    <option value="15">15 Questions</option>
-                    <option value="20">20 Questions</option>
+                <select class="form-select" id="num_questions" name="num_questions" required style="background-color: #1e2a44; color: #e6f1ff; border-color: #00aaff;">
+                    <option value="" disabled selected style="color: #b0c4de;">Select number of questions</option>
+                    <option value="5" style="color: #e6f1ff;">5 Questions</option>
+                    <option value="10" style="color: #e6f1ff;">10 Questions</option>
+                    <option value="15" style="color: #e6f1ff;">15 Questions</option>
+                    <option value="20" style="color: #e6f1ff;">20 Questions</option>
                 </select>
             </div>
 
             <button type="submit" class="btn btn-primary">Start Quiz</button>
         </form>
 
-        <!-- Quiz Display -->
         {% if quiz_data and quiz_data.get('questions') %}
             <h2 class="mt-4">Quiz Time!</h2>
             <form method="POST" action="{{ url_for('submit_quiz') }}">
                 {% for question in quiz_data.questions %}
                     <div class="quiz-question">
                         <h4>{{ loop.index }}. {{ question.question }}</h4>
-
                         {% if question.options %}
-                            <ul>
-                                {% for opt in question.options %}
-                                    <li>{{ loop.index }}. {{ opt }}</li>
+                            <div class="options-list">
+                                {% for i in range(4) %}
+                                    <div class="option">
+                                        {{ ['a', 'b', 'c', 'd'][i] }}) {{ question.options[i] }}
+                                    </div>
                                 {% endfor %}
-                            </ul>
-                            <div class="option">
-                                <label for="answer_{{ loop.index0 }}" class="form-label">Your Answer (1-{{ question.options|length }}):</label>
-                                <input type="text" class="form-control" id="answer_{{ loop.index0 }}" name="answer_{{ loop.index0 }}" placeholder="Enter your answer" required>
+                            </div>
+                            <div class="option mt-2">
+                                <label for="answer_{{ loop.index0 }}" class="form-label">Your Answer:</label>
+                                <input type="text" class="form-control" id="answer_{{ loop.index0 }}" name="answer_{{ loop.index0 }}" placeholder="Enter your answer" required style="background-color: #1e2a44; color: #e6f1ff; border-color: #00aaff;">
                             </div>
                         {% else %}
                             <p>No options available for this question.</p>
