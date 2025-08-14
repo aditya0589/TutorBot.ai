@@ -8,8 +8,12 @@ from flask_mysqldb import MySQL
 import os
 from tutor import SubjectTutor
 from markdown import markdown as md  # Use markdown for rendering
+from dotenv import load_dotenv
 import re
 import json
+import time  # Added for time.time()
+
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -39,109 +43,16 @@ class NotesForm(FlaskForm):
     note_content = TextAreaField('Note Content', validators=[DataRequired(), Length(max=10000, message="Note content must not exceed 10,000 characters")])
     submit = SubmitField('Save Note')
 
-# ---------------------------
-# Helper: normalize AI quiz data
-# ---------------------------
-def normalize_quiz_data(quiz_data):
-    """
-    Normalizes quiz_data in-place to ensure:
-    - For MCQs with 'options': question['correct_answer'] is an int index 0..(n-1)
-    - For open-ended: question['correct_answer'] becomes a lowercased string
-    Handles AI outputs with keys 'answer', 'correct', or 'correct_answer' (which may be text, letter, or index).
-    """
-    for q in quiz_data.get('questions', []):
-        # unify key names
-        if 'correct_answer' not in q:
-            q['correct_answer'] = q.get('answer') or q.get('correct') or None
+# Define topics per subject
+TOPICS = {
+    'dsa': ['Arrays', 'Linked Lists', 'Stacks', 'Queues', 'Trees', 'Graphs', 'Sorting', 'Searching'],
+    'ml': ['Supervised Learning', 'Unsupervised Learning', 'Neural Networks', 'Regression', 'Classification'],
+    'dbms': ['ER Model', 'Normalization', 'Transactions', 'Indexing', 'SQL'],
+    'os': ['Processes', 'Threads', 'Memory Management', 'Scheduling', 'File Systems'],
+    'webdev': ['HTML', 'CSS', 'JavaScript', 'React', 'Node.js'],
+    'networks': ['OSI Model', 'TCP/IP', 'Routing', 'Subnetting', 'HTTP']
+}
 
-        options = q.get('options') or []
-        ca = q.get('correct_answer')
-
-        if options:
-            # MCQ handling → convert to 0-based index where possible
-            if ca is None:
-                q['correct_answer'] = None
-                continue
-
-            if isinstance(ca, int):
-                # If 0-based within range, ok; if 1-based convert to 0-based
-                if 0 <= ca < len(options):
-                    q['correct_answer'] = int(ca)
-                elif 1 <= ca <= len(options):
-                    q['correct_answer'] = int(ca) - 1
-                else:
-                    q['correct_answer'] = None
-                continue
-
-            if isinstance(ca, str):
-                s = ca.strip()
-                # letter -> index (a->0)
-                if len(s) == 1 and s.lower() in {'a','b','c','d','e','f'}:
-                    idx = ord(s.lower()) - ord('a')
-                    q['correct_answer'] = idx if 0 <= idx < len(options) else None
-                    continue
-
-                # numeric string
-                if s.isdigit():
-                    idx = int(s)
-                    if 1 <= idx <= len(options):
-                        q['correct_answer'] = idx - 1
-                        continue
-                    if 0 <= idx < len(options):
-                        q['correct_answer'] = idx
-                        continue
-
-                # exact match to option text
-                matched_index = None
-                for opt_i, opt_text in enumerate(options):
-                    if opt_text is not None and s.lower() == str(opt_text).strip().lower():
-                        matched_index = opt_i
-                        break
-                if matched_index is not None:
-                    q['correct_answer'] = matched_index
-                    continue
-
-                # loose containment match
-                matched_index = None
-                for opt_i, opt_text in enumerate(options):
-                    if opt_text is not None and s.lower() in str(opt_text).strip().lower():
-                        matched_index = opt_i
-                        break
-                if matched_index is not None:
-                    q['correct_answer'] = matched_index
-                    continue
-
-                q['correct_answer'] = None
-                continue
-
-            q['correct_answer'] = None
-        else:
-            # Open-ended: store normalized string
-            q['correct_answer'] = None if ca is None else str(ca).strip().lower()
-
-    return quiz_data
-
-# ---------------------------
-# Get next quiz number for a user
-# ---------------------------
-def get_next_quiz_no(user_id):
-    """
-    Per-user quiz numbering: find max quiz_no for this user and add 1.
-    """
-    try:
-        cursor = mysql.connection.cursor()
-        cursor.execute("SELECT MAX(quiz_no) FROM quiz_attempts WHERE user_id = %s", (user_id,))
-        row = cursor.fetchone()
-        cursor.close()
-        max_q = row[0] if row and row[0] is not None else 0
-        return int(max_q) + 1
-    except Exception as e:
-        print("Error getting next quiz_no:", e)
-        return 1
-
-# ---------------------------
-# Routes (kept same as original, with small integrations)
-# ---------------------------
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -222,6 +133,33 @@ def session_page():
         flash('Please login first.', 'error')
         return redirect(url_for('login'))
     return render_template('session.html')
+
+def get_subjects_with_topics():
+    cursor = mysql.connection.cursor()
+
+    # Example structure: subjects table & topics table
+    cursor.execute("SELECT sub_id, sub_name FROM subjects")
+    subjects = cursor.fetchall()
+
+    data = []
+    for subj in subjects:
+        cursor.execute("SELECT topic_id, topic_name FROM topics WHERE sub_id=%s", (subj[0],))
+        topics = cursor.fetchall()
+        data.append({"sub_id": subj[0], "sub_name": subj[1], "topics": topics})
+    
+    print(data)
+    cursor.close()
+    return data
+
+# Tracking progress for each subject
+@app.route('/progress_tracker')
+def progress_tracker():
+    if 'user_id' not in session:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+    
+    subjects_data = get_subjects_with_topics()
+    return render_template("progress_tracker.html", subjects=subjects_data)
 
 @app.route('/tutors/<subject>_tutor', methods=['GET', 'POST'])
 def tutor_page(subject):
@@ -315,9 +253,6 @@ def review_notes():
 
     return render_template('review_notes.html', notes=notes, user_name=session.get('user_name'))
 
-# ---------------------------
-# Quiz generation & normalization
-# ---------------------------
 @app.route('/quiz', methods=['GET', 'POST'])
 def quiz():
     if 'user_id' not in session:
@@ -356,13 +291,6 @@ def quiz():
             if not isinstance(quiz_data, dict) or 'questions' not in quiz_data:
                 raise ValueError("Invalid quiz data structure")
             
-            # Normalize the AI-provided quiz data (ensures consistent correct_answer format)
-            quiz_data = normalize_quiz_data(quiz_data)
-            
-            # Get and set quiz_no for this generated quiz (per-user)
-            quiz_no = get_next_quiz_no(session['user_id'])
-            session['quiz_no'] = quiz_no
-
             # Store quiz data in session
             session['quiz_data'] = quiz_data
             flash(f'Quiz generated for {subject} - {topic} ({level}, {num_questions} questions)', 'success')
@@ -370,11 +298,8 @@ def quiz():
             flash(f'Error parsing quiz data: {str(e)}. Raw response: {quiz_raw}', 'error')
             quiz_data = None
 
-    return render_template('quiz.html', quiz_data=quiz_data)
+    return render_template('quiz.html', quiz_data=quiz_data, topics=TOPICS)
 
-# ---------------------------
-# Submit quiz (with DB logging) — updated to include user_id and per-user quiz_no
-# ---------------------------
 @app.route('/submit_quiz', methods=['POST'])
 def submit_quiz():
     if 'user_id' not in session:
@@ -383,8 +308,6 @@ def submit_quiz():
     
     # Retrieve quiz data from session
     quiz_data = session.get('quiz_data')
-    quiz_no = session.get('quiz_no')  # set when quiz was generated
-    user_id = session.get('user_id')
     if not quiz_data:
         flash('No quiz data available. Please generate a quiz first.', 'error')
         return redirect(url_for('quiz'))
@@ -396,83 +319,43 @@ def submit_quiz():
     # Debug: Print all received form data
     print(f"Received form data: {dict(request.form)}")
     
-    # MySQL cursor
+    # Compare user answers with correct answers and log to database
     cursor = mysql.connection.cursor()
-
-    # Compare user answers with correct answers and log each question
     for i in range(total_questions):
-        question = quiz_data['questions'][i]
-        options = question.get('options') or []
-        correct_index = question.get('correct_answer')  # normalized to 0-based index or str (open-ended)
-        
         user_answer = request.form.get(f'answer_{i}')
-        if user_answer is None:
-            # no answer submitted
-            continue
-        
-        ua = user_answer.strip()
-        # If MCQ
-        if options:
-            matched = False
-            # 1) If user enters a digit (1-based index), map to 0-based and compare
-            if ua.isdigit():
-                try:
-                    chosen_idx = int(ua) - 1
-                    if correct_index is not None and 0 <= chosen_idx < len(options):
-                        if int(correct_index) == chosen_idx:
-                            score += 1
-                            matched = True
-                except ValueError:
-                    pass
-
-            # 2) If user typed option text, compare case-insensitively with the correct option text
-            if not matched:
-                try:
-                    # compare to correct option text (if correct_index available)
-                    if correct_index is not None and 0 <= int(correct_index) < len(options):
-                        correct_text = str(options[int(correct_index)]).strip().lower()
-                        if ua.lower() == correct_text:
-                            score += 1
-                            matched = True
-                except (ValueError, TypeError, IndexError):
-                    pass
-
-            # store raw user answer for review
+        correct_answer_index = quiz_data['questions'][i]['correct_answer']
+        print(f"Question {i}: User answer = {user_answer}, Correct answer index = {correct_answer_index}")
+        if user_answer is not None:
+            # Clean user input to handle letter input (e.g., "a", "b")
+            user_answer_cleaned = user_answer.strip().lower()
+            if user_answer_cleaned in ['a', 'b', 'c', 'd']:
+                user_index = ord(user_answer_cleaned) - ord('a')
+                if user_index == correct_answer_index:
+                    score += 1
             user_answers[i] = user_answer
-        else:
-            # open-ended
-            ua_norm = ua.lower()
-            correct_text = question.get('correct_answer')
-            if correct_text is not None and ua_norm == str(correct_text).strip().lower():
-                score += 1
-            user_answers[i] = user_answer
-
-        # debug print per question
-        print(f"Q{i} - UA: {user_answer} | options: {options} | correct_index: {correct_index} | score so far: {score}")
-
-        # Store in MySQL (include user_id and quiz_no)
-        try:
-            cursor.execute("""
-                INSERT INTO quiz_attempts
-                (user_id, quiz_no, question, option1, option2, option3, option4, correct_option, user_option)
+            
+            # Insert into quiz_attempts table
+            cursor.execute(
+                """
+                INSERT INTO quiz_attempts (user_id, quiz_no, question, option1, option2, option3, option4, correct_option, user_option)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (
-                user_id,
-                quiz_no,
-                question.get('question'),
-                options[0] if len(options) > 0 else None,
-                options[1] if len(options) > 1 else None,
-                options[2] if len(options) > 2 else None,
-                options[3] if len(options) > 3 else None,
-                (int(correct_index) + 1) if (correct_index is not None and isinstance(correct_index, int)) else None,
-                int(ua) if ua.isdigit() else ua
-            ))
-            mysql.connection.commit()
-        except Exception as e:
-            # Log error but continue saving other questions
-            print(f"Error inserting quiz_attempt for Q{i}: {e}")
-            mysql.connection.rollback()
-
+                """,
+                (
+                    session['user_id'],
+                    int(round(time.time())),  # Using timestamp as a proxy for quiz_no
+                    quiz_data['questions'][i]['question'],
+                    quiz_data['questions'][i]['options'][0],
+                    quiz_data['questions'][i]['options'][1],
+                    quiz_data['questions'][i]['options'][2],
+                    quiz_data['questions'][i]['options'][3],
+                    quiz_data['questions'][i]['options'][correct_answer_index],
+                    user_answer
+                )
+            )
+    
+    mysql.connection.commit()
+    cursor.close()
+    
     # Calculate percentage
     percentage = (score / total_questions) * 100 if total_questions > 0 else 0
     
@@ -488,9 +371,6 @@ def submit_quiz():
     flash(f'Quiz submitted! Your score: {score}/{total_questions} ({percentage:.1f}%)', 'success')
     return redirect(url_for('quiz'))
 
-# ---------------------------
-# Review quiz route (unchanged)
-# ---------------------------
 @app.route('/review_quiz')
 def review_quiz():
     if 'user_id' not in session:
