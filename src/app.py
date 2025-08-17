@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_wtf import FlaskForm
 from langchain.memory import ConversationBufferMemory
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Email, EqualTo, Length
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 import bcrypt
 from flask_mysqldb import MySQL
 import os
@@ -11,7 +11,7 @@ from markdown import markdown as md  # Use markdown for rendering
 from dotenv import load_dotenv
 import re
 import json
-import time  # Added for time.time()
+import time
 
 load_dotenv()
 
@@ -42,6 +42,22 @@ class LoginForm(FlaskForm):
 class NotesForm(FlaskForm):
     note_content = TextAreaField('Note Content', validators=[DataRequired(), Length(max=10000, message="Note content must not exceed 10,000 characters")])
     submit = SubmitField('Save Note')
+
+class SettingsForm(FlaskForm):
+    current_password = PasswordField('Current Password', validators=[DataRequired()])
+    new_username = StringField('New Username', validators=[Length(min=2, max=50)])
+    new_password = PasswordField('New Password', validators=[Length(min=6, message="Password must be at least 6 characters")])
+    confirm_password = PasswordField('Confirm New Password', validators=[EqualTo('new_password', message="Passwords must match")])
+    submit = SubmitField('Save Changes')
+
+    def validate_current_password(self, field):
+        if 'user_id' in session:
+            cursor = mysql.connection.cursor()
+            cursor.execute('SELECT password FROM users WHERE id = %s', (session['user_id'],))
+            user = cursor.fetchone()
+            cursor.close()
+            if user and not bcrypt.checkpw(field.data.encode('utf-8'), user[0].encode('utf-8')):
+                raise ValidationError('Current password is incorrect.')
 
 # Define topics per subject
 TOPICS = {
@@ -391,6 +407,86 @@ def review_quiz():
     return render_template('review_quiz.html', score=score, total_questions=total_questions, 
                           percentage=percentage, user_answers=user_answers, quiz_data=quiz_data)
 
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    if 'user_id' not in session:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+    
+    form = SettingsForm()
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT name FROM users WHERE id = %s', (session['user_id'],))
+    current_username = cursor.fetchone()[0]
+    cursor.close()
+
+    if form.validate_on_submit():
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT password FROM users WHERE id = %s', (session['user_id'],))
+        user = cursor.fetchone()
+        if user and bcrypt.checkpw(form.current_password.data.encode('utf-8'), user[0].encode('utf-8')):
+            new_username = form.new_username.data.strip() if form.new_username.data else None
+            new_password = form.new_password.data.strip() if form.new_password.data else None
+            
+            if new_username or new_password:
+                update_query = 'UPDATE users SET '
+                update_params = []
+                if new_username:
+                    update_query += 'name = %s'
+                    update_params.append(new_username)
+                if new_password:
+                    if new_username:
+                        update_query += ', password = %s'
+                    else:
+                        update_query += 'password = %s'
+                    update_params.append(bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()))
+                update_query += ' WHERE id = %s'
+                update_params.append(session['user_id'])
+                
+                cursor.execute(update_query, update_params)
+                mysql.connection.commit()
+                cursor.close()
+                flash('Settings updated successfully!', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Please provide a new username, password, or both to update.', 'error')
+        else:
+            flash('Incorrect current password.', 'error')
+
+    return render_template('settings.html', form=form, current_username=current_username)
+
+@app.route('/delete_account', methods=['POST'])
+def delete_account():
+    if 'user_id' not in session:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+    
+    current_password = request.form.get('current_password')
+    print(f"Attempting deletion for user_id: {session['user_id']}, password provided: {current_password}")
+    if not current_password:
+        flash('Current password is required for deletion.', 'error')
+        print("No password provided, redirecting to settings")
+        return redirect(url_for('settings'))
+    
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT password FROM users WHERE id = %s', (session['user_id'],))
+    user = cursor.fetchone()
+    if user and bcrypt.checkpw(current_password.encode('utf-8'), user[0].encode('utf-8')):
+        print("Password verified, proceeding with deletion")
+        # Delete associated data
+        cursor.execute('DELETE FROM user_notes WHERE user_id = %s', (session['user_id'],))
+        cursor.execute('DELETE FROM quiz_attempts WHERE user_id = %s', (session['user_id'],))
+        cursor.execute('DELETE FROM users WHERE id = %s', (session['user_id'],))
+        mysql.connection.commit()
+        cursor.close()
+        session.pop('user_id', None)
+        flash('Account deleted successfully. Goodbye!', 'success')
+        print("Deletion successful, redirecting to index")
+        return redirect(url_for('index'))
+    else:
+        flash('Incorrect current password for account deletion.', 'error')
+        print("Incorrect password, redirecting to settings")
+        return redirect(url_for('settings'))
+
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
@@ -398,6 +494,15 @@ def logout():
     session.pop('quiz_results', None)
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
+
+@app.route('/subjects')
+def subjects():
+    if 'user_id' not in session:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+    
+    subjects_data = get_subjects_with_topics()
+    return render_template('subjects.html', subjects=subjects_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
