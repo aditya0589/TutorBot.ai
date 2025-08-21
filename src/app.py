@@ -143,8 +143,6 @@ def get_subjects_with_topics():
         cursor.execute("SELECT topic_id, topic_name FROM topics WHERE sub_id=%s", (subj[0],))
         topics = cursor.fetchall()
         data.append({"sub_id": subj[0], "sub_name": subj[1], "topics": topics})
-    
-    print(data)
     cursor.close()
     return data
 
@@ -156,7 +154,61 @@ def progress_tracker():
         return redirect(url_for('login'))
     
     subjects_data = get_subjects_with_topics()
-    return render_template("progress_tracker.html", subjects=subjects_data)
+    # Fetch completed topic ids for the logged-in user
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT topic_id FROM user_progress WHERE user_id = %s', (session['user_id'],))
+    completed_rows = cursor.fetchall()
+    cursor.close()
+    completed_topic_ids = set(row[0] for row in completed_rows)
+    # Compute per-subject progress
+    for subject in subjects_data:
+        total_topics = len(subject["topics"]) if subject.get("topics") else 0
+        completed_topics = 0
+        if total_topics > 0:
+            for topic in subject["topics"]:
+                if topic[0] in completed_topic_ids:
+                    completed_topics += 1
+            progress_pct = int(round((completed_topics / total_topics) * 100))
+        else:
+            progress_pct = 0
+        subject["total_topics"] = total_topics
+        subject["completed_topics"] = completed_topics
+        subject["progress_pct"] = progress_pct
+
+    return render_template("progress_tracker.html", subjects=subjects_data, completed_topic_ids=completed_topic_ids)
+
+
+# API endpoint to update user progress per topic
+@app.route('/api/progress', methods=['POST'])
+def update_user_progress():
+    if 'user_id' not in session:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    try:
+        payload = request.get_json(silent=True) or {}
+        topic_id = payload.get('topic_id')
+        completed = bool(payload.get('completed'))
+
+        if topic_id is None:
+            return jsonify({"success": False, "error": "topic_id is required"}), 400
+
+        cursor = mysql.connection.cursor()
+
+        if completed:
+            cursor.execute('INSERT IGNORE INTO user_progress (user_id, topic_id) VALUES (%s, %s)', (session['user_id'], topic_id))
+        else:
+            cursor.execute('DELETE FROM user_progress WHERE user_id = %s AND topic_id = %s', (session['user_id'], topic_id))
+
+        mysql.connection.commit()
+        cursor.close()
+
+        return jsonify({"success": True})
+    except Exception as e:
+        try:
+            cursor.close()
+        except Exception:
+            pass
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route('/tutors/<subject>_tutor', methods=['GET', 'POST'])
