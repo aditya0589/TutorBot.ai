@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Progress Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         body {
             background-color: #0f0f23;
@@ -35,6 +36,35 @@
             padding: 20px;
             border-radius: 10px;
             width: 60%;
+        }
+        .progress-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            position: relative;
+            flex: 1;
+            height: 10px;
+            background: #1e1e2f;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #b11fff, #9324ee);
+            transition: width 0.25s ease;
+        }
+        .progress-percentage {
+            min-width: 42px;
+            text-align: right;
+            color: #cfd8dc;
+            font-size: 12px;
         }
     
         .subject-header h3 {
@@ -69,6 +99,18 @@
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">🧠 TutorBot.ai</div>
+            <div class="nav-links">
+                <a href="/home">Home</a>
+                <a href="#dashboard">Dashboard</a>
+                <a href="#subjects">Subjects</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
     <div class="navbar">
         <h1>Progress Tracker</h1>
     </div>
@@ -77,10 +119,16 @@
         {% for subject in subjects %}
             <div class="subject-header">
                 <h3>{{ subject.sub_name }}</h3>
+                <div class="progress-row">
+                    <div class="progress-bar" aria-label="{{ subject.sub_name }} progress">
+                        <div class="progress-fill" data-progress-fill data-initial-pct="{{ subject.progress_pct }}"></div>
+                    </div>
+                    <div class="progress-percentage" data-progress-text>{{ subject.progress_pct }}%</div>
+                </div>
                 <div class="topics">
                     {% for topic in subject.topics %}
                         <label class="custom-checkbox">
-                            <input type="checkbox" name="topics" value="{{ topic[0] }}">
+                            <input type="checkbox" name="topics" value="{{ topic[0] }}" {% if topic[0] in completed_topic_ids %}checked{% endif %}>
                             {{ topic[1] }}
                         </label>
                     {% endfor %}
@@ -103,6 +151,50 @@
 
             // Toggle the clicked one
             topics.classList.toggle('show');
+        });
+    });
+
+    // Initialize progress fills from data attribute
+    document.querySelectorAll('[data-progress-fill]').forEach(el => {
+        const pct = parseInt(el.getAttribute('data-initial-pct') || '0', 10);
+        el.style.width = pct + '%';
+    });
+
+    // Auto-save on checkbox change and update progress bar
+    document.querySelectorAll('input[type="checkbox"][name="topics"]').forEach(cb => {
+        cb.addEventListener('change', async (e) => {
+            const topicId = parseInt(e.target.value, 10);
+            const completed = e.target.checked;
+            const subjectContainer = e.target.closest('.subject-header');
+            try {
+                const res = await fetch("{{ url_for('update_user_progress') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ topic_id: topicId, completed })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    console.error('Save failed:', data.error);
+                }
+            } catch (err) {
+                console.error('Network error saving progress', err);
+            }
+
+            // Recalculate progress locally for this subject
+            try {
+                const checkboxes = subjectContainer.querySelectorAll('input[type="checkbox"][name="topics"]');
+                const total = checkboxes.length;
+                const checked = Array.from(checkboxes).filter(x => x.checked).length;
+                const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+                const fill = subjectContainer.querySelector('[data-progress-fill]');
+                const label = subjectContainer.querySelector('[data-progress-text]');
+                if (fill) fill.style.width = pct + '%';
+                if (label) label.textContent = pct + '%';
+            } catch (err) {
+                console.error('Error updating local progress bar', err);
+            }
         });
     });
 </script>
