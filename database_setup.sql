@@ -86,3 +86,11 @@ INSERT INTO topics (topic_name, weightage, sub_id) VALUES
 ('Cloud Networking', 6, 2),
 ('Software Defined Networking (SDN)', 6, 2),
 ('IoT Networking Basics', 7, 2);
+
+CREATE TABLE user_progress(
+	user_id INT,
+    topic_id INT,
+    PRIMARY KEY (user_id, topic_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (topic_id) REFERENCES topics(topic_id)
+);
