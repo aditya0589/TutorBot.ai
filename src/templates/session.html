@@ -426,8 +426,8 @@
                     'quiz': 'Practice Quiz'
                 };
 
-                selectedSubjectSpan.textContent = subjectNames[selectedSubject];
-                selectedFeatureSpan.textContent = featureNames[selectedFeature];
+                selectedSubjectSpan.textContent = subjectNames[selectedSubject] || 'Subject';
+                selectedFeatureSpan.textContent = featureNames[selectedFeature] || 'Activity';
                 sessionInfo.style.display = 'block';
             } else {
                 sessionInfo.style.display = 'none';
@@ -447,9 +447,15 @@
         // Start session button
         document.getElementById('startSessionBtn').addEventListener('click', function() {
             if (selectedSubject && selectedFeature) {
-                // Redirect to the appropriate tutor page
-                const tutorUrl = `/tutors/${selectedSubject}_tutor`;
-                window.location.href = tutorUrl;
+                // Redirect based on selected feature
+                if (selectedFeature === 'chat') {
+                    const tutorUrl = `/tutors/${selectedSubject}_tutor`;
+                    window.location.href = tutorUrl;
+                } else if (selectedFeature === 'notes') {
+                    window.location.href = '/notes';
+                } else if (selectedFeature === 'quiz') {
+                    window.location.href = '/quiz';
+                }
             }
         });
 
