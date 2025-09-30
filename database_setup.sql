@@ -18,6 +18,24 @@ CREATE TABLE user_notes (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-->table for quiz attempts
+CREATE TABLE quiz_attempts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    subject VARCHAR(100) NOT NULL, 
+    topic VARCHAR(100) NOT NULL,
+    quiz_no INT NOT NULL,
+    question TEXT NOT NULL,
+    option1 TEXT,
+    option2 TEXT,
+    option3 TEXT,
+    option4 TEXT,
+    correct_option VARCHAR(255),
+    user_option VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 --> table to subjects
 CREATE TABLE subjects(
 	sub_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -134,7 +152,7 @@ VALUES
 ('Virtual Memory, Page Replacement Algorithms', 10, 5),
 ('File Organization', 6, 5),
 ('Allocation Methods (Contiguous, Linked, Indexed)', 7, 5),
-('Conditions, Prevention, Avoidance (Banker's Algorithm)', 10, 5),
+('Conditions, Prevention, Avoidance (Bankers Algorithm)', 10, 5),
 ('Interrupts, Device Drivers, Buffering', 10, 5);
 
 --> insert topics for Web Development
