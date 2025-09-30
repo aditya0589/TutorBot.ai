@@ -73,6 +73,27 @@ TOPICS = {
     'networks': ['OSI Model', 'TCP/IP', 'Routing', 'Subnetting', 'HTTP']
 }
 
+def get_user_progress(user_id):
+    """Return per-subject progress percentages for a given user using Flask-MySQLdb."""
+    subjects_data = get_subjects_with_topics()  # fetch subjects and their topic IDs
+
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT topic_id FROM user_progress WHERE user_id = %s', (user_id,))
+    completed_rows = cursor.fetchall()
+    cursor.close()
+    
+    completed_topic_ids = set(row[0] for row in completed_rows)
+
+    subject_progress = {}
+    for subject in subjects_data:
+        total_topics = len(subject.get("topics", []))
+        completed_topics = sum(1 for topic in subject["topics"] if topic[0] in completed_topic_ids)
+        progress_pct = int(round((completed_topics / total_topics) * 100)) if total_topics > 0 else 0
+        subject_progress[subject["sub_name"]] = progress_pct
+
+    return subject_progress
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -128,20 +149,45 @@ def register():
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session:
-        flash('Please login first.', 'error')
+        flash("Please log in first", "error")
         return redirect(url_for('login'))
-    
+
+    user_id = session['user_id']
+
     cursor = mysql.connection.cursor()
-    cursor.execute('SELECT name FROM users WHERE id = %s', (session['user_id'],))
-    user = cursor.fetchone()
+
+    # Get user's name
+    cursor.execute("SELECT name FROM users WHERE id = %s", (user_id,))
+    user_row = cursor.fetchone()
+    user_name = user_row[0] if user_row else "User"
+
+    # Quizzes Taken
+    cursor.execute("SELECT COUNT(DISTINCT quiz_no) FROM quiz_attempts WHERE user_id = %s", (user_id,))
+    quizzes_taken = cursor.fetchone()[0]
+
+    # Notes Saved
+    cursor.execute("SELECT COUNT(*) FROM user_notes WHERE user_id = %s", (user_id,))
+    notes_saved = cursor.fetchone()[0]
+
+    # Placeholder for learning hours
+    hours_learned = 0
+
     cursor.close()
-    
-    if user:
-        user_name = user[0]
-    else:
-        user_name = "Student"
-    
-    return render_template('home.html', user_name=user_name)
+
+    # Get dynamic progress per subject
+    subject_progress = get_user_progress(user_id)
+
+    return render_template(
+        'home.html',
+        user_name=user_name,
+        hours_learned=hours_learned,
+        quizzes_taken=quizzes_taken,
+        notes_saved=notes_saved,
+        subject_progress=subject_progress
+    )
+
+
+
 
 @app.route('/about')
 def about():
@@ -397,22 +443,22 @@ def quiz():
         session['quiz_context'] = {'subject': subject, 'topic': topic}
 
         # Generate quiz with explanations
-        query = f"Generate {num_questions} multiple-choice questions on {subject} for {level} level, focusing on {topic}. Each question should have a question text, 4 options (a, b, c, d), one correct answer, and a brief explanation of the correct answer. Return the response as a JSON object with a 'questions' array, where each question is an object with 'question', 'options' (array of 4), 'correct_answer' (index 0-3), and 'explanation' (string)."
+        query = f"Generate {num_questions} multiple-choice questions on {subject} for {level} level, focusing on {topic}.Each question should have a question text, 4 options (a, b, c, d), one correct answer, and a brief explanation of the correct answer. Return the response as a JSON object with a 'questions' array, where each question is an object with 'question', 'options' (array of 4), 'correct_answer' (index 0-3), and 'explanation' (string). IF REQUIRED QUESTIONS ARE 20: then for sure generate 20 questions without fail in the JSON format"
         quiz_raw = tutor.generate_response(subject, query)
         
         # Debug: Print the raw response and its length
-        print(f"Raw quiz response (length: {len(quiz_raw)}): {quiz_raw}")
+        #print(f"Raw quiz response (length: {len(quiz_raw)}): {quiz_raw}")
         
         try:
             # Attempt to extract JSON from code block
             json_match = re.search(r'```json\s*(\{.*?\})\s*```', quiz_raw, re.DOTALL)
             if json_match:
                 quiz_raw = json_match.group(1).strip()
-                print(f"Extracted JSON: {quiz_raw}")
+                #print(f"Extracted JSON: {quiz_raw}")
             # Fallback to raw JSON if it starts with {
             elif quiz_raw.strip().startswith('{'):
                 quiz_raw = quiz_raw.strip()
-                print(f"Using raw JSON: {quiz_raw}")
+                #print(f"Using raw JSON: {quiz_raw}")
             else:
                 raise ValueError("No valid JSON structure detected in response")
             
@@ -492,8 +538,8 @@ def submit_quiz():
     # Update progress with the quiz score (percentage)
     percentage = (score / total_questions) * 100 if total_questions > 0 else 0
     cursor.execute(
-        url_for('update_user_progress'),
-        {'subject': quiz_context.get('subject', ''), 'action': 'quiz', 'score': percentage}
+        'INSERT IGNORE INTO user_progress (user_id, topic_id) VALUES (%s, %s)',
+        (session['user_id'], quiz_context.get('topic'))
     )
     cursor.close()
     
