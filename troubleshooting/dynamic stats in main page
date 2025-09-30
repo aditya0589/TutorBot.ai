@@ -1,0 +1,39 @@
+Dynamic Subject Progress and Quick Stats on Dashboard
+
+Problem:
+Originally, the dashboard displayed hardcoded values for subjects and user statistics (e.g., quizzes taken, notes saved, completion percentages). This meant all users saw the same static numbers, which didn’t reflect their actual learning progress.
+
+Challenges:
+
+Fetching user-specific data from multiple tables (quiz_attempts, user_notes, user_progress) without creating new routes.
+
+Calculating per-subject completion percentages dynamically based on completed topics and total topics.
+
+Integrating these dynamic values seamlessly into the existing dashboard template.
+
+Ensuring multiple users could see their own data without interfering with others’ data.
+
+Solution:
+
+Used the logged-in user’s user_id from the session to query the database for:
+
+Quizzes taken (quiz_attempts)
+
+Notes saved (user_notes)
+
+Completed topics for each subject (user_progress combined with subject/topic mapping)
+
+Calculated per-subject completion percentages as:
+progress_pct = (completed_topics / total_topics) * 100
+
+Passed these dynamically calculated values to the dashboard template, replacing the static hardcoded numbers.
+
+Updated the “Quick Stats” section to fetch hours learned, quizzes taken, and notes saved dynamically for the logged-in user.
+
+Outcome:
+
+Each user now sees accurate, real-time progress for all subjects.
+
+Quick stats reflect the individual user’s activity instead of static values.
+
+The dashboard is fully dynamic and scales automatically as new subjects or users are added, without needing additional routes or template changes.
