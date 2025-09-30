@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_wtf import FlaskForm
 from langchain.memory import ConversationBufferMemory
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 import bcrypt
 from flask_mysqldb import MySQL
@@ -28,6 +28,9 @@ mysql = MySQL(app)
 # Add markdown filter to Jinja2
 app.jinja_env.filters['markdown'] = md
 
+# Define subjects for the notes and progress forms
+SUBJECTS = ['dsa', 'ml', 'dbms', 'os', 'webdev', 'networks']
+
 class RegisterForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -40,6 +43,7 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Login')
 
 class NotesForm(FlaskForm):
+    subject = SelectField('Subject', choices=[(s, s.capitalize()) for s in SUBJECTS], validators=[DataRequired()])
     note_content = TextAreaField('Note Content', validators=[DataRequired(), Length(max=10000, message="Note content must not exceed 10,000 characters")])
     submit = SubmitField('Save Note')
 
@@ -59,7 +63,7 @@ class SettingsForm(FlaskForm):
             if user and not bcrypt.checkpw(field.data.encode('utf-8'), user[0].encode('utf-8')):
                 raise ValidationError('Current password is incorrect.')
 
-# Define topics per subject
+# Define topics per subject for quiz context
 TOPICS = {
     'dsa': ['Arrays', 'Linked Lists', 'Stacks', 'Queues', 'Trees', 'Graphs', 'Sorting', 'Searching'],
     'ml': ['Supervised Learning', 'Unsupervised Learning', 'Neural Networks', 'Regression', 'Classification'],
@@ -175,8 +179,62 @@ def progress_tracker():
         return redirect(url_for('login'))
     
     subjects_data = get_subjects_with_topics()
-    return render_template("progress_tracker.html", subjects=subjects_data)
+    # Fetch completed topic ids for the logged-in user
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT topic_id FROM user_progress WHERE user_id = %s', (session['user_id'],))
+    completed_rows = cursor.fetchall()
+    cursor.close()
+    completed_topic_ids = set(row[0] for row in completed_rows)
+    # Compute per-subject progress
+    for subject in subjects_data:
+        total_topics = len(subject["topics"]) if subject.get("topics") else 0
+        completed_topics = 0
+        if total_topics > 0:
+            for topic in subject["topics"]:
+                if topic[0] in completed_topic_ids:
+                    completed_topics += 1
+            progress_pct = int(round((completed_topics / total_topics) * 100))
+        else:
+            progress_pct = 0
+        subject["total_topics"] = total_topics
+        subject["completed_topics"] = completed_topics
+        subject["progress_pct"] = progress_pct
 
+    return render_template("progress_tracker.html", subjects=subjects_data, completed_topic_ids=completed_topic_ids)
+
+
+# API endpoint to update user progress per topic
+@app.route('/api/progress', methods=['POST'])
+def update_user_progress():
+    if 'user_id' not in session:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+
+    try:
+        payload = request.get_json(silent=True) or {}
+        topic_id = payload.get('topic_id')
+        completed = bool(payload.get('completed'))
+
+        if topic_id is None:
+            return jsonify({"success": False, "error": "topic_id is required"}), 400
+
+        cursor = mysql.connection.cursor()
+
+        if completed:
+            cursor.execute('INSERT IGNORE INTO user_progress (user_id, topic_id) VALUES (%s, %s)', (session['user_id'], topic_id))
+        else:
+            cursor.execute('DELETE FROM user_progress WHERE user_id = %s AND topic_id = %s', (session['user_id'], topic_id))
+
+        mysql.connection.commit()
+        cursor.close()
+
+        return jsonify({"success": True})
+    except Exception as e:
+        try:
+            cursor.close()
+        except Exception:
+            pass
+        return jsonify({"success": False, "error": str(e)}), 500
+    
 @app.route('/tutors/<subject>_tutor', methods=['GET', 'POST'])
 def tutor_page(subject):
     if 'user_id' not in session:
@@ -188,6 +246,9 @@ def tutor_page(subject):
     tutor_response = None
     tutor = SubjectTutor()
 
+    # Pre-select the subject in the form
+    form.subject.data = subject
+
     if form.validate_on_submit():
         note_content = form.note_content.data
         user_id = session['user_id']
@@ -196,9 +257,14 @@ def tutor_page(subject):
             cursor = mysql.connection.cursor()
             cursor.execute(
                 'INSERT INTO user_notes (user_id, subject, note_content) VALUES (%s, %s, %s)',
-                (user_id, subject, note_content)
+                (user_id, form.subject.data, note_content)
             )
             mysql.connection.commit()
+            # Update progress
+            cursor.execute(
+                url_for('update_user_progress'),
+                {'subject': subject, 'action': 'note'}
+            )
             cursor.close()
             flash('Note saved successfully!', 'success')
         except Exception as e:
@@ -268,6 +334,49 @@ def review_notes():
         return jsonify({'notes': [{'id': note[0], 'subject': note[1], 'note_content': note[2], 'created_at': note[3].isoformat()} for note in notes]})
 
     return render_template('review_notes.html', notes=notes, user_name=session.get('user_name'))
+
+@app.route('/notes', methods=['GET', 'POST'])
+def notes():
+    if 'user_id' not in session:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+
+    form = NotesForm()
+    notes = []
+
+    if form.validate_on_submit():
+        note_content = form.note_content.data
+        subject = form.subject.data
+        user_id = session['user_id']
+
+        try:
+            cursor = mysql.connection.cursor()
+            cursor.execute(
+                'INSERT INTO user_notes (user_id, subject, note_content) VALUES (%s, %s, %s)',
+                (user_id, subject, note_content)
+            )
+            mysql.connection.commit()
+            cursor.close()
+            flash('Note saved successfully!', 'success')
+        except Exception as e:
+            flash(f'Error saving note: {str(e)}', 'error')
+            cursor.close()
+
+    # Fetch all notes for the user
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute(
+            'SELECT id, subject, note_content, created_at FROM user_notes WHERE user_id = %s ORDER BY created_at DESC',
+            (session['user_id'],)
+        )
+        notes = cursor.fetchall()
+        cursor.close()
+    except Exception as e:
+        flash(f'Error fetching notes: {str(e)}', 'error')
+        cursor.close()
+
+    return render_template('notes.html', form=form, notes=notes)
+
 
 @app.route('/quiz', methods=['GET', 'POST'])
 def quiz():
@@ -380,10 +489,13 @@ def submit_quiz():
             )
     
     mysql.connection.commit()
-    cursor.close()
-    
-    # Calculate percentage
+    # Update progress with the quiz score (percentage)
     percentage = (score / total_questions) * 100 if total_questions > 0 else 0
+    cursor.execute(
+        url_for('update_user_progress'),
+        {'subject': quiz_context.get('subject', ''), 'action': 'quiz', 'score': percentage}
+    )
+    cursor.close()
     
     # Store user answers and score in session for review
     session['quiz_results'] = {
@@ -485,6 +597,7 @@ def delete_account():
         # Delete associated data
         cursor.execute('DELETE FROM user_notes WHERE user_id = %s', (session['user_id'],))
         cursor.execute('DELETE FROM quiz_attempts WHERE user_id = %s', (session['user_id'],))
+        cursor.execute('DELETE FROM user_progress WHERE user_id = %s', (session['user_id'],))
         cursor.execute('DELETE FROM users WHERE id = %s', (session['user_id'],))
         mysql.connection.commit()
         cursor.close()
