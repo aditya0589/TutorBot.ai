@@ -64,7 +64,10 @@ VALUES
 ('Divide & Conquer', 3, 1),
 ('Dynamic Programming', 6, 1),
 ('Backtracking', 3, 1),
-('String Matching Algorithms', 2, 1),
+('String Matching Algorithms', 2, 1);
+
+INSERT INTO topics(topic_name, weightage, sub_id)
+VALUES
 ('Network Models (OSI, TCP/IP)', 7, 2),
 ('Data Transmission (Analog, Digital)', 5, 2),
 ('Transmission Media (Wired, Wireless)', 5, 2),
