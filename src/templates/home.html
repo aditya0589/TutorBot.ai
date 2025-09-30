@@ -115,22 +115,15 @@
                     <div class="card-content">
                         <p>Your current learning subjects</p>
                         <div class="stats-grid">
-                            <div class="stat-item">
-                                <span class="stat-number">DSA</span>
-                                <span class="stat-label">90% Complete</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number">ML</span>
-                                <span class="stat-label">75% Complete</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number">DBMS</span>
-                                <span class="stat-label">60% Complete</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number">OS</span>
-                                <span class="stat-label">45% Complete</span>
-                            </div>
+                            <div class="stats-grid">
+    {% for subject, percent in subject_progress.items() %}
+        <div class="stat-item">
+            <span class="stat-number">{{ subject }}</span>
+            <span class="stat-label">{{ percent }}% Complete</span>
+        </div>
+    {% endfor %}
+</div>
+
                         </div>
                     </div>
                 </div>
@@ -158,11 +151,11 @@
                             <span class="stat-label">Hours Learned</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-number">8</span>
+                            <span class="stat-number">{{ quizzes_taken }}</span>
                             <span class="stat-label">Quizzes Taken</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-number">15</span>
+                            <span class="stat-number">{{ notes_saved }}</span>
                             <span class="stat-label">Notes Saved</span>
                         </div>
                     </div>
