@@ -1,16 +1,19 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_wtf import FlaskForm
 from langchain.memory import ConversationBufferMemory
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Email, EqualTo, Length
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 import bcrypt
 from flask_mysqldb import MySQL
 import os
 from tutor import SubjectTutor
 from markdown import markdown as md  # Use markdown for rendering
 from dotenv import load_dotenv
-load_dotenv()
+import re
+import json
+import time
 
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -25,6 +28,9 @@ mysql = MySQL(app)
 # Add markdown filter to Jinja2
 app.jinja_env.filters['markdown'] = md
 
+# Define subjects for the notes and progress forms
+SUBJECTS = ['dsa', 'ml', 'dbms', 'os', 'webdev', 'networks']
+
 class RegisterForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -37,10 +43,27 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Login')
 
 class NotesForm(FlaskForm):
+    subject = SelectField('Subject', choices=[(s, s.capitalize()) for s in SUBJECTS], validators=[DataRequired()])
     note_content = TextAreaField('Note Content', validators=[DataRequired(), Length(max=10000, message="Note content must not exceed 10,000 characters")])
     submit = SubmitField('Save Note')
 
-# Define topics per subject
+class SettingsForm(FlaskForm):
+    current_password = PasswordField('Current Password', validators=[DataRequired()])
+    new_username = StringField('New Username', validators=[Length(min=2, max=50)])
+    new_password = PasswordField('New Password', validators=[Length(min=6, message="Password must be at least 6 characters")])
+    confirm_password = PasswordField('Confirm New Password', validators=[EqualTo('new_password', message="Passwords must match")])
+    submit = SubmitField('Save Changes')
+
+    def validate_current_password(self, field):
+        if 'user_id' in session:
+            cursor = mysql.connection.cursor()
+            cursor.execute('SELECT password FROM users WHERE id = %s', (session['user_id'],))
+            user = cursor.fetchone()
+            cursor.close()
+            if user and not bcrypt.checkpw(field.data.encode('utf-8'), user[0].encode('utf-8')):
+                raise ValidationError('Current password is incorrect.')
+
+# Define topics per subject for quiz context
 TOPICS = {
     'dsa': ['Arrays', 'Linked Lists', 'Stacks', 'Queues', 'Trees', 'Graphs', 'Sorting', 'Searching'],
     'ml': ['Supervised Learning', 'Unsupervised Learning', 'Neural Networks', 'Regression', 'Classification'],
@@ -143,10 +166,12 @@ def get_subjects_with_topics():
         cursor.execute("SELECT topic_id, topic_name FROM topics WHERE sub_id=%s", (subj[0],))
         topics = cursor.fetchall()
         data.append({"sub_id": subj[0], "sub_name": subj[1], "topics": topics})
+    
+    print(data)
     cursor.close()
     return data
 
-#tracking progress for each subject
+# Tracking progress for each subject
 @app.route('/progress_tracker')
 def progress_tracker():
     if 'user_id' not in session:
@@ -209,8 +234,7 @@ def update_user_progress():
         except Exception:
             pass
         return jsonify({"success": False, "error": str(e)}), 500
-
-
+    
 @app.route('/tutors/<subject>_tutor', methods=['GET', 'POST'])
 def tutor_page(subject):
     if 'user_id' not in session:
@@ -222,6 +246,9 @@ def tutor_page(subject):
     tutor_response = None
     tutor = SubjectTutor()
 
+    # Pre-select the subject in the form
+    form.subject.data = subject
+
     if form.validate_on_submit():
         note_content = form.note_content.data
         user_id = session['user_id']
@@ -230,9 +257,14 @@ def tutor_page(subject):
             cursor = mysql.connection.cursor()
             cursor.execute(
                 'INSERT INTO user_notes (user_id, subject, note_content) VALUES (%s, %s, %s)',
-                (user_id, subject, note_content)
+                (user_id, form.subject.data, note_content)
             )
             mysql.connection.commit()
+            # Update progress
+            cursor.execute(
+                url_for('update_user_progress'),
+                {'subject': subject, 'action': 'note'}
+            )
             cursor.close()
             flash('Note saved successfully!', 'success')
         except Exception as e:
@@ -303,6 +335,49 @@ def review_notes():
 
     return render_template('review_notes.html', notes=notes, user_name=session.get('user_name'))
 
+@app.route('/notes', methods=['GET', 'POST'])
+def notes():
+    if 'user_id' not in session:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+
+    form = NotesForm()
+    notes = []
+
+    if form.validate_on_submit():
+        note_content = form.note_content.data
+        subject = form.subject.data
+        user_id = session['user_id']
+
+        try:
+            cursor = mysql.connection.cursor()
+            cursor.execute(
+                'INSERT INTO user_notes (user_id, subject, note_content) VALUES (%s, %s, %s)',
+                (user_id, subject, note_content)
+            )
+            mysql.connection.commit()
+            cursor.close()
+            flash('Note saved successfully!', 'success')
+        except Exception as e:
+            flash(f'Error saving note: {str(e)}', 'error')
+            cursor.close()
+
+    # Fetch all notes for the user
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute(
+            'SELECT id, subject, note_content, created_at FROM user_notes WHERE user_id = %s ORDER BY created_at DESC',
+            (session['user_id'],)
+        )
+        notes = cursor.fetchall()
+        cursor.close()
+    except Exception as e:
+        flash(f'Error fetching notes: {str(e)}', 'error')
+        cursor.close()
+
+    return render_template('notes.html', form=form, notes=notes)
+
+
 @app.route('/quiz', methods=['GET', 'POST'])
 def quiz():
     if 'user_id' not in session:
@@ -310,7 +385,7 @@ def quiz():
         return redirect(url_for('login'))
     
     tutor = SubjectTutor()
-    quiz_data = None
+    quiz_data = session.get('quiz_data', None)
 
     if request.method == 'POST':
         subject = request.form.get('subject')
@@ -318,25 +393,239 @@ def quiz():
         topic = request.form.get('topic')
         num_questions = int(request.form.get('num_questions', 5))  # Default to 5 if not set
 
-        # Generate quiz using the tutor
-        query = f"Generate {num_questions} multiple-choice questions on {subject} for {level} level, focusing on {topic}. Each question should have a question text, 4 options (a, b, c, d), and one correct answer. Return the response as a JSON object with a 'questions' array, where each question is an object with 'question', 'options' (array of 4), and 'correct_answer' (index 0-3)."
+        # Store subject and topic in session for later use
+        session['quiz_context'] = {'subject': subject, 'topic': topic}
+
+        # Generate quiz with explanations
+        query = f"Generate {num_questions} multiple-choice questions on {subject} for {level} level, focusing on {topic}.Each question should have a question text, 4 options (a, b, c, d), one correct answer, and a brief explanation of the correct answer. Return the response as a JSON object with a 'questions' array, where each question is an object with 'question', 'options' (array of 4), 'correct_answer' (index 0-3), and 'explanation' (string). IF REQUIRED QUESTIONS ARE 20: then for sure generate 20 questions without fail in the JSON format"
         quiz_raw = tutor.generate_response(subject, query)
         
+        # Debug: Print the raw response and its length
+        #print(f"Raw quiz response (length: {len(quiz_raw)}): {quiz_raw}")
+        
         try:
-            import json
+            # Attempt to extract JSON from code block
+            json_match = re.search(r'```json\s*(\{.*?\})\s*```', quiz_raw, re.DOTALL)
+            if json_match:
+                quiz_raw = json_match.group(1).strip()
+                #print(f"Extracted JSON: {quiz_raw}")
+            # Fallback to raw JSON if it starts with {
+            elif quiz_raw.strip().startswith('{'):
+                quiz_raw = quiz_raw.strip()
+                #print(f"Using raw JSON: {quiz_raw}")
+            else:
+                raise ValueError("No valid JSON structure detected in response")
+            
+            # Validate and parse JSON
             quiz_data = json.loads(quiz_raw)
+            if not isinstance(quiz_data, dict) or 'questions' not in quiz_data:
+                raise ValueError("Invalid quiz data structure: Missing 'questions' key or not a dictionary")
+            
+            # Store quiz data in session
+            session['quiz_data'] = quiz_data
             flash(f'Quiz generated for {subject} - {topic} ({level}, {num_questions} questions)', 'success')
-        except json.JSONDecodeError:
-            flash('Error parsing quiz data. Please try again.', 'error')
+        except (json.JSONDecodeError, ValueError) as e:
+            flash(f'Error parsing quiz data: {str(e)}. Please try again with different parameters.', 'error')
             quiz_data = None
+            print(f"JSON parsing failed. Error: {str(e)}, Raw response: {quiz_raw}")  # Detailed debug
 
     return render_template('quiz.html', quiz_data=quiz_data, topics=TOPICS)
+
+@app.route('/submit_quiz', methods=['POST'])
+def submit_quiz():
+    if 'user_id' not in session:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+    
+    # Retrieve quiz data and context from session
+    quiz_data = session.get('quiz_data')
+    quiz_context = session.get('quiz_context', {'subject': '', 'topic': ''})
+    print(f"Quiz context during submission: {quiz_context}")  # Debug print
+    if not quiz_data:
+        flash('No quiz data available. Please generate a quiz first.', 'error')
+        return redirect(url_for('quiz'))
+
+    score = 0
+    total_questions = len(quiz_data['questions'])
+    user_answers = {}  # Store user answers for review
+    
+    # Debug: Print all received form data
+    print(f"Received form data: {dict(request.form)}")
+    
+    # Compare user answers with correct answers and log to database
+    cursor = mysql.connection.cursor()
+    for i in range(total_questions):
+        user_answer = request.form.get(f'answer_{i}')
+        correct_answer_index = quiz_data['questions'][i]['correct_answer']
+        print(f"Question {i}: User answer = {user_answer}, Correct answer index = {correct_answer_index}")
+        if user_answer is not None:
+            # Clean user input to handle letter input (e.g., "a", "b")
+            user_answer_cleaned = user_answer.strip().lower()
+            if user_answer_cleaned in ['a', 'b', 'c', 'd']:
+                user_index = ord(user_answer_cleaned) - ord('a')
+                if user_index == correct_answer_index:
+                    score += 1
+            user_answers[i] = user_answer
+            
+            # Insert into quiz_attempts table with subject and topic
+            cursor.execute(
+                """
+                INSERT INTO quiz_attempts (user_id, quiz_no, question, option1, option2, option3, option4, correct_option, user_option, subject, topic)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    session['user_id'],
+                    int(round(time.time())),  # Using timestamp as a proxy for quiz_no
+                    quiz_data['questions'][i]['question'],
+                    quiz_data['questions'][i]['options'][0],
+                    quiz_data['questions'][i]['options'][1],
+                    quiz_data['questions'][i]['options'][2],
+                    quiz_data['questions'][i]['options'][3],
+                    quiz_data['questions'][i]['options'][correct_answer_index],
+                    user_answer,
+                    quiz_context.get('subject', ''),
+                    quiz_context.get('topic', '')
+                )
+            )
+    
+    mysql.connection.commit()
+    # Update progress with the quiz score (percentage)
+    percentage = (score / total_questions) * 100 if total_questions > 0 else 0
+    cursor.execute(
+        'INSERT IGNORE INTO user_progress (user_id, topic_id) VALUES (%s, %s)',
+        (session['user_id'], quiz_context.get('topic'))
+    )
+    cursor.close()
+    
+    # Store user answers and score in session for review
+    session['quiz_results'] = {
+        'score': score,
+        'total_questions': total_questions,
+        'percentage': percentage,
+        'user_answers': user_answers,
+        'quiz_data': quiz_data
+    }
+    
+    flash(f'Quiz submitted! Your score: {score}/{total_questions} ({percentage:.1f}%)', 'success')
+    return redirect(url_for('quiz'))
+
+@app.route('/review_quiz')
+def review_quiz():
+    if 'user_id' not in session:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+    
+    quiz_results = session.get('quiz_results')
+    if not quiz_results:
+        flash('No quiz results available. Please take a quiz first.', 'error')
+        return redirect(url_for('quiz'))
+    
+    score = quiz_results['score']
+    total_questions = quiz_results['total_questions']
+    percentage = quiz_results['percentage']
+    user_answers = quiz_results['user_answers']
+    quiz_data = quiz_results['quiz_data']
+    
+    return render_template('review_quiz.html', score=score, total_questions=total_questions, 
+                          percentage=percentage, user_answers=user_answers, quiz_data=quiz_data)
+
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    if 'user_id' not in session:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+    
+    form = SettingsForm()
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT name FROM users WHERE id = %s', (session['user_id'],))
+    current_username = cursor.fetchone()[0]
+    cursor.close()
+
+    if form.validate_on_submit():
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT password FROM users WHERE id = %s', (session['user_id'],))
+        user = cursor.fetchone()
+        if user and bcrypt.checkpw(form.current_password.data.encode('utf-8'), user[0].encode('utf-8')):
+            new_username = form.new_username.data.strip() if form.new_username.data else None
+            new_password = form.new_password.data.strip() if form.new_password.data else None
+            
+            if new_username or new_password:
+                update_query = 'UPDATE users SET '
+                update_params = []
+                if new_username:
+                    update_query += 'name = %s'
+                    update_params.append(new_username)
+                if new_password:
+                    if new_username:
+                        update_query += ', password = %s'
+                    else:
+                        update_query += 'password = %s'
+                    update_params.append(bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()))
+                update_query += ' WHERE id = %s'
+                update_params.append(session['user_id'])
+                
+                cursor.execute(update_query, update_params)
+                mysql.connection.commit()
+                cursor.close()
+                flash('Settings updated successfully!', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Please provide a new username, password, or both to update.', 'error')
+        else:
+            flash('Incorrect current password.', 'error')
+
+    return render_template('settings.html', form=form, current_username=current_username)
+
+@app.route('/delete_account', methods=['POST'])
+def delete_account():
+    if 'user_id' not in session:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+    
+    current_password = request.form.get('current_password')
+    print(f"Attempting deletion for user_id: {session['user_id']}, password provided: {current_password}")
+    if not current_password:
+        flash('Current password is required for deletion.', 'error')
+        print("No password provided, redirecting to settings")
+        return redirect(url_for('settings'))
+    
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT password FROM users WHERE id = %s', (session['user_id'],))
+    user = cursor.fetchone()
+    if user and bcrypt.checkpw(current_password.encode('utf-8'), user[0].encode('utf-8')):
+        print("Password verified, proceeding with deletion")
+        # Delete associated data
+        cursor.execute('DELETE FROM user_notes WHERE user_id = %s', (session['user_id'],))
+        cursor.execute('DELETE FROM quiz_attempts WHERE user_id = %s', (session['user_id'],))
+        cursor.execute('DELETE FROM user_progress WHERE user_id = %s', (session['user_id'],))
+        cursor.execute('DELETE FROM users WHERE id = %s', (session['user_id'],))
+        mysql.connection.commit()
+        cursor.close()
+        session.pop('user_id', None)
+        flash('Account deleted successfully. Goodbye!', 'success')
+        print("Deletion successful, redirecting to index")
+        return redirect(url_for('index'))
+    else:
+        flash('Incorrect current password for account deletion.', 'error')
+        print("Incorrect password, redirecting to settings")
+        return redirect(url_for('settings'))
 
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
+    session.pop('quiz_data', None)
+    session.pop('quiz_results', None)
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
+
+@app.route('/subjects')
+def subjects():
+    if 'user_id' not in session:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+    
+    subjects_data = get_subjects_with_topics()
+    return render_template('subjects.html', subjects=subjects_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
