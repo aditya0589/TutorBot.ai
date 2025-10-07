@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 import re
 import json
 import time
+import pandas as pd
+import plotly.express as px
 
 load_dotenv()
 
@@ -142,6 +144,59 @@ def dashboard():
         user_name = "Student"
     
     return render_template('home.html', user_name=user_name)
+
+@app.route('/user_dashboard')
+def user_dashboard():
+    if 'user_id' not in session:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+    
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT * FROM quiz_attempts')
+
+    rows = cursor.fetchall()
+    col_names = [i[0] for i in cursor.description]
+    cursor.close()
+    
+    # Create DataFrame
+    df = pd.DataFrame(rows, columns=col_names)
+
+    # Create a combined string column if needed (converted safely)
+    df['combined'] = (
+        df['subject'].astype(str)
+        + df['created_at'].astype(str)
+        + df['correct_option'].astype(str)
+        + df['user_option'].astype(str)
+    )
+
+    # Create a column for correctness
+    df['marks'] = df['correct_option'] == df['user_option']
+    df['marks'] = df['marks'].astype(int)
+
+    accuracy_df = df.groupby('subject').agg(
+        total_questions=('marks', 'count'),
+        correct_answers=('marks', 'sum')
+    ).reset_index()
+
+    accuracy_df['accuracy'] = (accuracy_df['correct_answers'] / accuracy_df['total_questions']) * 100
+    accuracy_df['accuracy'] = accuracy_df['accuracy'].round(2)
+
+    # Plot with Plotly
+    fig = px.bar(
+        accuracy_df,
+        x='subject',
+        y='accuracy',
+        color='subject',
+        title='Accuracy per Subject (%)',
+        labels={'accuracy': 'Accuracy (%)'},
+        text='accuracy'
+    )
+
+    fig.update_traces(textposition='outside')
+    fig.update_layout(yaxis_range=[0, 100])
+    plot_html = fig.to_html(full_html=False)
+    
+    return render_template('user_dashboard.html', plot_html = plot_html)
 
 @app.route('/about')
 def about():
@@ -397,7 +452,7 @@ def quiz():
         session['quiz_context'] = {'subject': subject, 'topic': topic}
 
         # Generate quiz with explanations
-        query = f"Generate {num_questions} multiple-choice questions on {subject} for {level} level, focusing on {topic}.Each question should have a question text, 4 options (a, b, c, d), one correct answer, and a brief explanation of the correct answer. Return the response as a JSON object with a 'questions' array, where each question is an object with 'question', 'options' (array of 4), 'correct_answer' (index 0-3), and 'explanation' (string). IF REQUIRED QUESTIONS ARE 20: then for sure generate 20 questions without fail in the JSON format"
+        query = f"Generate {num_questions} multiple-choice questions on {subject} for {level} level, focusing on {topic}.Each question should have a question text, 4 options (a, b, c, d), one correct answer, and a brief explanation of the correct answer. Return the response as a JSON object with a 'questions' array, where each question is an object with 'question', 'options' (array of 4), 'correct_answer' (index 0-3), and 'explanation' (string)."
         quiz_raw = tutor.generate_response(subject, query)
         
         # Debug: Print the raw response and its length
@@ -481,10 +536,10 @@ def submit_quiz():
                     quiz_data['questions'][i]['options'][1],
                     quiz_data['questions'][i]['options'][2],
                     quiz_data['questions'][i]['options'][3],
-                    quiz_data['questions'][i]['options'][correct_answer_index],
-                    user_answer,
+                    correct_answer_index+1,
+                    user_index+1,
                     quiz_context.get('subject', ''),
-                    quiz_context.get('topic', '')
+                    quiz_context.get('topic', ''),
                 )
             )
     

@@ -32,3 +32,6 @@ python-multipart==0.0.6
 
 # Form email validation
 email-validator
+
+# Graph generation
+plotly==5.20.0
