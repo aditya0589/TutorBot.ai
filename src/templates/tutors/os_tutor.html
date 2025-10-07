@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TutorBot.ai - OS Tutor</title>
+  <style>
+    /* SAME STYLES as provided (unchanged for brevity)... */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #0d0c1d, #1a1a40);
+      color: #fff;
+    }
+    .navbar {
+      background-color: #121230;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 40px;
+      border-bottom: 1px solid #222;
+    }
+    .navbar .logo { font-size: 24px; color: #8a8aff; font-weight: bold; }
+    .navbar .nav-links a {
+      color: #fff; margin-left: 20px; text-decoration: none; font-weight: 500;
+    }
+    .main-container {
+      display: flex;
+      padding: 20px 40px;
+    }
+    .chat-section {
+      flex: 2;
+      background-color: #1d1d3a;
+      border-radius: 10px;
+      padding: 20px;
+      margin-right: 20px;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 90px);
+      overflow-y: auto;
+    }
+    .chat-title {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    .chat-bubble {
+      background-color: #2c2c5d;
+      padding: 16px;
+      border-radius: 16px;
+      margin-top: 10px;
+      max-width: 600px;
+      line-height: 1.6;
+      font-size: 15px;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+    }
+    .input-box {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    textarea {
+      width: 100%;
+      background-color: #2a2a55;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 15px;
+      resize: none;
+      margin-top: 15px;
+    }
+    button {
+      background-color: #5c5cdd;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      font-weight: 500;
+    }
+    button:hover {
+      background-color: #7777f0;
+    }
+    .sidebar {
+      flex: 1;
+      background-color: #1e1e3e;
+      border-radius: 10px;
+      padding: 20px;
+      height: calc(100vh - 90px);
+      overflow-y: auto;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    .quick-actions button {
+      width: 100%;
+      background-color: #2c2c5d;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+      text-align: left;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .progress, .notes { margin-top: 30px; }
+    .notes textarea {
+      width: 100%;
+      height: 200px;
+      background-color: #2a2a55;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 14px;
+      resize: vertical;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <div class="logo">💬 TutorBot.ai</div>
+    <div class="nav-links">
+      <a href="{{ url_for('dashboard') }}">Home</a>
+                <a href="{{ url_for('quiz_analytics') }}">Dashboard</a>
+                <a href="{{ url_for('session_page') }}">New Session</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <!-- Chat Section -->
+    <div class="chat-section">
+      <div class="chat-title">Operating Systems Tutor</div>
+
+      <!-- {% if conversation_history %}
+        <div class="chat-bubble">{{ conversation_history }}</div>
+      {% endif %} -->
+
+      {% if tutor_response %}
+        <div class="chat-bubble"><strong>Tutor:</strong> {{ tutor_response }}</div>
+      {% endif %}
+
+      <!-- Tutor query form -->
+      <form method="POST" class="input-box">
+        <textarea name="query" rows="3" placeholder="Ask your OS question..."></textarea>
+        <button type="submit">Send</button>
+      </form>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="section-title">🤖 Quick Actions</div>
+      <div class="quick-actions">
+        <button>Scheduling</button>
+        <button>Operating Systems</button>
+        <button>Page Replacement Algorithms</button>
+        <button>Bankers Algorithm</button>
+      </div>
+
+      <div class="progress">
+        <div class="section-title">📊 Progress</div>
+        <p>Your progress will appear here...</p>
+      </div>
+
+      <div class="notes">
+        <div class="section-title">📝 Quick Notes</div>
+        <!-- Save notes form -->
+        <form method="POST">
+          {{ form.csrf_token }}
+          <textarea name="note_content" placeholder="Write your notes here...">{{ existing_note or '' }}</textarea>
+          <button type="submit">Save Notes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 TutorBot.ai - Settings</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <style>
+        body {
+            background-color: #0a192f;
+            color: #e6f1ff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #112240;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            background-color: #1e2a44;
+            color: #e6f1ff;
+            border: 1px solid #00aaff;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #00aaff;
+            box-shadow: 0 0 5px #00aaff;
+            background-color: #1e2a44;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #00aaff;
+            color: #e6f1ff;
+        }
+        .btn-primary:hover {
+            background-color: #0090d0;
+        }
+        .btn-danger {
+            background-color: #ff4444;
+            color: #e6f1ff;
+        }
+        .btn-danger:hover {
+            background-color: #cc0000;
+        }
+        .alert {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+        .alert-success {
+            background-color: #28a745;
+            color: #fff;
+        }
+        .alert-danger {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: #e6f1ff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            float: right;
+        }
+        nav {
+            background-color: #0a192f;
+            padding: 10px 20px;
+        }
+        nav a {
+            color: #b0c4de;
+            text-decoration: none;
+            margin-left: 15px;
+        }
+        nav a:hover {
+            color: #e6f1ff;
+        }
+        .error {
+            color: #dc3545;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('home') }}" class="navbar-brand">🧠 TutorBot.ai</a>
+        <div>
+            <a href="{{ url_for('dashboard') }}">Home</a>
+                <a href="{{ url_for('quiz_analytics') }}">Dashboard</a>
+                <a href="{{ url_for('subjects') }}">Subjects</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="mt-4">Settings</h1>
+        <p class="lead">Update your profile or delete your account</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category == 'success' and 'alert-success' or 'alert-danger' }}">
+                        {{ message }}
+                        <button type="button" class="close-btn" onclick="this.parentElement.style.display='none';">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('settings') }}">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <label class="form-label">Current Username</label>
+                <input type="text" class="form-control" value="{{ current_username }}" readonly>
+            </div>
+            <div class="form-group">
+                <label class="form-label">{{ form.current_password.label.text }}</label>
+                {{ form.current_password(class="form-control") }}
+                {% for error in form.current_password.errors %}
+                    <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">{{ form.new_username.label.text }}</label>
+                {{ form.new_username(class="form-control") }}
+                {% for error in form.new_username.errors %}
+                    <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">{{ form.new_password.label.text }}</label>
+                {{ form.new_password(class="form-control") }}
+                {% for error in form.new_password.errors %}
+                    <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">{{ form.confirm_password.label.text }}</label>
+                {{ form.confirm_password(class="form-control") }}
+                {% for error in form.confirm_password.errors %}
+                    <div class="error">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="button" id="deleteAccountBtn" class="btn btn-danger ms-2">Delete Account Permanently</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('deleteAccountBtn').addEventListener('click', function() {
+            if (confirm('Deleting account permanently')) {
+                // Collect current password from the form
+                const currentPassword = document.querySelector('input[name="current_password"]').value;
+                if (!currentPassword) {
+                    alert('Please enter your current password to delete your account.');
+                    return;
+                }
+
+                // Send POST request to delete account
+                fetch('/delete_account', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'current_password=' + encodeURIComponent(currentPassword)
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else {
+                        return response.text(); // Handle non-redirect responses if any
+                    }
+                })
+                .catch(error => {
+                    alert('An error occurred. Please try again.');
+                    console.error('Error:', error);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
