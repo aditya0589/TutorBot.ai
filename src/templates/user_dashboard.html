@@ -19,10 +19,17 @@
             </div>
         </div>
     </nav>
-
-    <!-- Embed Plotly Graph -->
-    {{ plot_html | safe }}
-
+    <div class="dashboard-container">
+        <br>
+        <h1 style="text-align: center; color: white;">Welcome to Your Dashboard</h1>
+        <p style="text-align: center; color: white;">Track your learning progress and performance over time.</p>
+        <br><br>
+        <!-- Embed Plotly Graph -->
+        {{ sub_bar | safe }}
+        <br>
+        <br>
+        {{ sub_line | safe }}
+    </div>
     <script>
         // Add scroll effect to navbar
         window.addEventListener('scroll', function() {

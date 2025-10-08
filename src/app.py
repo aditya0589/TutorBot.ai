@@ -161,14 +161,6 @@ def user_dashboard():
     # Create DataFrame
     df = pd.DataFrame(rows, columns=col_names)
 
-    # Create a combined string column if needed (converted safely)
-    df['combined'] = (
-        df['subject'].astype(str)
-        + df['created_at'].astype(str)
-        + df['correct_option'].astype(str)
-        + df['user_option'].astype(str)
-    )
-
     # Create a column for correctness
     df['marks'] = df['correct_option'] == df['user_option']
     df['marks'] = df['marks'].astype(int)
@@ -181,8 +173,8 @@ def user_dashboard():
     accuracy_df['accuracy'] = (accuracy_df['correct_answers'] / accuracy_df['total_questions']) * 100
     accuracy_df['accuracy'] = accuracy_df['accuracy'].round(2)
 
-    # Plot with Plotly
-    fig = px.bar(
+    # Subject-wise bargraph
+    bar_fig = px.bar(
         accuracy_df,
         x='subject',
         y='accuracy',
@@ -192,11 +184,58 @@ def user_dashboard():
         text='accuracy'
     )
 
-    fig.update_traces(textposition='outside')
-    fig.update_layout(yaxis_range=[0, 100])
-    plot_html = fig.to_html(full_html=False)
+    bar_fig.update_traces(textposition='outside')
+    bar_fig.update_layout(
+        yaxis_range=[0, 100],
+        height=600,
+        width=1000,
+    )
+    sub_bar = bar_fig.to_html(full_html=False)
     
-    return render_template('user_dashboard.html', plot_html = plot_html)
+
+    # Subject-wise line graph for trend analysis
+    df['created_at'] = pd.to_datetime(df['created_at'])
+    df['date'] = df['created_at'].dt.date
+
+    accuracy_df_2 = df.groupby(['subject', 'date']).agg(
+        total_attempts=('marks', 'count'),
+        correct_answers=('marks', 'sum')
+    ).reset_index()
+
+    accuracy_df_2['accuracy_percent'] = (accuracy_df_2['correct_answers'] / accuracy_df_2['total_attempts']) * 100
+    accuracy_df_2['accuracy_percent'] = accuracy_df_2['accuracy_percent'].round(2)
+
+    line_fig = px.line(
+        accuracy_df_2,
+        x='date',
+        y='accuracy_percent',
+        color='subject',
+        markers = True,
+        title='Performance Over Time by Subject',
+        labels={
+            'date': 'Date',
+            'marks percentage': 'Marks(%)',
+            'subject': 'Subject'
+        }
+    )
+
+    line_fig.update_layout(
+        yaxis=dict(range=[0, 1]),
+        xaxis=dict(
+        range=[0, accuracy_df_2['date'].max()]
+        ),
+        xaxis_title='Date',
+        yaxis_title='Marks (%)',
+        xaxis_autorange=True,
+        yaxis_autorange=True,
+        autosize=True,
+        height=600,
+        width=1000,
+        margin=dict(l=40, r=40, t=80, b=40)
+    )
+
+    sub_line = line_fig.to_html(full_html=False)
+    return render_template('user_dashboard.html', sub_bar = sub_bar, sub_line = sub_line)
 
 @app.route('/about')
 def about():
