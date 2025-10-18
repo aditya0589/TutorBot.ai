@@ -5,6 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Basic Styling for the Toggle System */
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Styles for the Icon Bar */
+        .icon-bar {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 10px 0;
+            background-color: rgba(255, 255, 255, 0.05); /* Light background for visibility */
+            border-radius: 8px;
+        }
+        .icon {
+            display: inline-block;
+            padding: 10px 15px;
+            margin: 0 5px;
+            cursor: pointer;
+            border: 1px solid #00c6ff;
+            border-radius: 5px;
+            background-color: #1a1a40;
+            color: white;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .icon:hover {
+            background-color: #00c6ff;
+            color: #151523;
+            transform: translateY(-2px);
+        }
+        .icon.active {
+            background-color: #00c6ff;
+            color: #151523;
+            border-color: #00c6ff;
+        }
+        
+        /* Class to hide the NEW graphs initially and when not selected */
+        .toggle-graph-container {
+            border: 2px solid #333;
+            padding: 20px;
+            margin-top: 15px;
+            min-height: 300px; /* Ensure a minimum height for visible graphs */
+        }
+        .hidden-graph {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -20,15 +69,54 @@
         </div>
     </nav>
     <div class="dashboard-container">
-        <br>
+        <br><br><br><br><br>
         <h1 style="text-align: center; color: white;">Welcome to Your Dashboard</h1>
         <p style="text-align: center; color: white;">Track your learning progress and performance over time.</p>
         <br><br>
+
         <!-- Embed Plotly Graph -->
         {{ sub_bar | safe }}
         <br>
         <br>
         {{ sub_line | safe }}
+        <br><br><br>
+
+        <h2 style="color: #00c6ff;">Detailed Analysis</h2>
+        
+        <div class="icon-bar">
+            <span class="icon active" onclick="toggleGraph('new-graph-1', this)">📈 DSA</span>
+            <span class="icon" onclick="toggleGraph('new-graph-2', this)">🏆 ML</span>
+            <span class="icon" onclick="toggleGraph('new-graph-3', this)">⏳ DBMS</span>
+            <span class="icon" onclick="toggleGraph('new-graph-4', this)">🔄 OS</span>
+            <span class="icon" onclick="toggleGraph('new-graph-5', this)">🎯 Web Dev</span>
+            <span class="icon" onclick="toggleGraph('new-graph-6', this)">🎯 CN</span>
+        </div>
+        
+        <br>
+
+        <div id="new-graph-1" class="toggle-graph-container">
+            {{ sub_dsa | safe }}
+        </div>
+        
+        <div id="new-graph-2" class="toggle-graph-container hidden-graph">
+            {{ sub_ml | safe }}
+        </div>
+
+        <div id="new-graph-3" class="toggle-graph-container hidden-graph">
+            {{ sub_dbms | safe }}
+        </div>
+
+        <div id="new-graph-4" class="toggle-graph-container hidden-graph">
+            {{ sub_os | safe }}
+        </div>
+
+        <div id="new-graph-5" class="toggle-graph-container hidden-graph">
+            {{ sub_webdev | safe }}
+        </div>
+
+        <div id="new-graph-6" class="toggle-graph-container hidden-graph">
+            {{ sub_networks | safe }}
+        </div>
     </div>
     <script>
         // Add scroll effect to navbar
@@ -40,6 +128,31 @@
                 navbar.style.background = 'rgba(15, 15, 35, 0.95)';
             }
         });
+
+        // New: Graph Toggling Logic
+        function toggleGraph(graphId, clickedIcon) {
+            // 1. Hide all toggleable graphs (existing logic)
+            const allGraphs = document.querySelectorAll('.toggle-graph-container');
+            allGraphs.forEach(graph => {
+                graph.classList.add('hidden-graph');
+            });
+
+            // 2. Deactivate all icons (REMOVES HIGHLIGHT from the old icon)
+            const allIcons = document.querySelectorAll('.icon-bar .icon');
+            allIcons.forEach(icon => {
+                icon.classList.remove('active');
+            }); // <-- This line ensures only one icon is highlighted at a time
+
+            // 3. Show the target graph (existing logic)
+            const targetGraph = document.getElementById(graphId);
+            if (targetGraph) {
+                targetGraph.classList.remove('hidden-graph');
+                // ... Plotly resize logic ...
+            }
+
+            // 4. Activate the clicked icon (ADDS HIGHLIGHT to the new icon)
+            clickedIcon.classList.add('active'); // <-- This line highlights the current icon
+        }
     </script>
 </body>
 </html>

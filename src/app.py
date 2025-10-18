@@ -235,7 +235,127 @@ def user_dashboard():
     )
 
     sub_line = line_fig.to_html(full_html=False)
-    return render_template('user_dashboard.html', sub_bar = sub_bar, sub_line = sub_line)
+
+    # Topic-wise bargraph
+
+    accuracy_df_3 = df.groupby(['subject', 'topic']).agg(
+        total_questions=('marks', 'count'),
+        correct_answers=('marks', 'sum')
+    ).reset_index()
+
+    accuracy_df_3['accuracy_percent'] = (accuracy_df_3['correct_answers'] / accuracy_df_3['total_questions']) * 100
+    accuracy_df_3['accuracy_percent'] = accuracy_df_3['accuracy_percent'].round(2)
+
+    print(accuracy_df_3.columns)
+
+    bar_dsa = px.bar(
+        accuracy_df_3[accuracy_df_3['subject'] == 'dsa'],
+        x='topic',
+        y='accuracy_percent',
+        color='topic',
+        title='Accuracy per Topic (%)',
+        labels={'accuracy': 'Accuracy (%)'},
+        text='accuracy_percent'
+    )
+
+    bar_ml = px.bar(
+        accuracy_df_3[accuracy_df_3['subject'] == 'ml'],
+        x='topic',
+        y='accuracy_percent',
+        color='topic',
+        title='Accuracy per Topic (%)',
+        labels={'accuracy': 'Accuracy (%)'},
+        text='accuracy_percent'
+    )
+
+    bar_dbms = px.bar(
+        accuracy_df_3[accuracy_df_3['subject'] == 'dbms'],
+        x='topic',
+        y='accuracy_percent',
+        color='topic',
+        title='Accuracy per Topic (%)',
+        labels={'accuracy': 'Accuracy (%)'},
+        text='accuracy_percent'
+    )
+
+    bar_os = px.bar(
+        accuracy_df_3[accuracy_df_3['subject'] == 'os'],
+        x='topic',
+        y='accuracy_percent',
+        color='topic',
+        title='Accuracy per Topic (%)',
+        labels={'accuracy': 'Accuracy (%)'},
+        text='accuracy_percent'
+    )
+
+    bar_webdev = px.bar(
+        accuracy_df_3[accuracy_df_3['subject'] == 'webdev'],
+        x='topic',
+        y='accuracy_percent',
+        color='topic',
+        title='Accuracy per Topic (%)',
+        labels={'accuracy': 'Accuracy (%)'},
+        text='accuracy_percent'
+    )
+
+    bar_networks = px.bar(
+        accuracy_df_3[accuracy_df_3['subject'] == 'networks'],
+        x='topic',
+        y='accuracy_percent',
+        color='topic',
+        title='Accuracy per Topic (%)',
+        labels={'accuracy': 'Accuracy (%)'},
+        text='accuracy_percent'
+    )
+
+    bar_dsa.update_traces(textposition='outside')
+    bar_dsa.update_layout(
+        yaxis_range=[0, 100],
+        height=600,
+        width=1000,
+    )
+    sub_dsa = bar_dsa.to_html(full_html=False)
+
+    bar_ml.update_traces(textposition='outside')
+    bar_ml.update_layout(
+        yaxis_range=[0, 100],
+        height=600,
+        width=1000,
+    )
+    sub_ml = bar_ml.to_html(full_html=False)
+
+    bar_dbms.update_traces(textposition='outside')
+    bar_dbms.update_layout(
+        yaxis_range=[0, 100],
+        height=600,
+        width=1000,
+    )
+    sub_dbms = bar_dbms.to_html(full_html=False)
+
+    bar_os.update_traces(textposition='outside')
+    bar_os.update_layout(
+        yaxis_range=[0, 100],
+        height=600,
+        width=1000,
+    )
+    sub_os = bar_os.to_html(full_html=False)
+
+    bar_webdev.update_traces(textposition='outside')
+    bar_webdev.update_layout(
+        yaxis_range=[0, 100],
+        height=600,
+        width=1000,
+    )
+    sub_webdev = bar_webdev.to_html(full_html=False)
+
+    bar_networks.update_traces(textposition='outside')
+    bar_networks.update_layout(
+        yaxis_range=[0, 100],
+        height=600,
+        width=1000,
+    )
+    sub_networks = bar_networks.to_html(full_html=False)
+    return render_template('user_dashboard.html', sub_bar = sub_bar, sub_line = sub_line, sub_dsa = sub_dsa, sub_ml = sub_ml, sub_dbms = sub_dbms, sub_os = sub_os, sub_webdev = sub_webdev, sub_networks = sub_networks)
 
 @app.route('/about')
 def about():
