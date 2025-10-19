@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subjects - TutorBot.ai</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Custom styles to ensure the topics list integrates well within the card */
+        .subject-card {
+            text-align: left; /* Ensure text starts left for better list display */
+        }
+
+        .subject-card h3 {
+            /* Apply gradient text effect from the main CSS for titles */
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .topic-list {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 1rem;
+        }
+
+        .topic-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .topic-list li:hover {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 5px;
+            padding-left: 5px;
+        }
+
+        .topic-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .topic-list a {
+            color: #b8b8b8;
+            text-decoration: none;
+            display: block;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .topic-list a:hover {
+            color: #667eea;
+        }
+        
+        .subjects-main-content {
+            display: flex; 
+            gap: 2rem;
+        }
+        
+        .subjects-main-content > div {
+            flex: 1;
+        }
+
+        .subjects-grid-wrapper {
+            flex: 3;
+        }
+        
+        .sidebar {
+            flex: 1; 
+            min-width: 250px;
+        }
+        
+        .subjects-main-content {
+            /* Fallback to single column for small screens */
+            flex-direction: column; 
+        }
+
+        @media (min-width: 992px) {
+            .subjects-main-content {
+                /* Two-column layout for large screens */
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">🧠 TutorBot.ai</div>
+            <div class="nav-links">
+                <a href="{{ url_for('dashboard') }}">Home</a>
+                <a href="{{ url_for('quiz_analytics') }}">Dashboard</a>
+                <a href="{{ url_for('subjects') }}">Subjects</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="dashboard-container">
+        <div class="container">
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="{{ category }}-message" style="margin-top: 2rem;">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <header class="dashboard-header">
+                <h1>All Subjects and Topics 📚</h1>
+                <p>Select a subject or topic to dive deep into its concepts with your AI Tutor.</p>
+            </header>
+
+            <div class="subjects-main-content">
+
+                <div class="subjects-grid-wrapper">
+                    <section class="subjects-section">
+                        <div class="subjects-grid">
+                            
+                            {% for subject in subjects %}
+                            <div class="subject-card">
+                                <div class="card-header">
+                                    <div class="card-icon">🧠</div> 
+                                    <h3>{{ subject.sub_name }}</h3>
+                                </div>
+                                
+                                <p class="card-content" style="margin-bottom: 1rem;">
+                                    Explore **{{ subject.topics | length }}** specific learning modules.
+                                </p>
+
+                                {% if subject.topics %}
+                                    <p style="color: #667eea; font-weight: 600;">Topics Included:</p>
+                                    <ul class="topic-list">
+                                        {% for topic in subject.topics %}
+                                            <li>
+                                                <a href="{{ url_for('tutor_page', subject=subject.sub_id, topic_id=topic[0]) }}">
+                                                    {{ topic[1] }}
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="card-content">No topics defined yet. Check back soon!</p>
+                                {% endif %}
+                                
+                                <div style="margin-top: 1.5rem; text-align: center;">
+                                    <a href="{{ url_for('tutor_page', subject=subject.sub_id, topic_id=0) }}" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.75rem 1.5rem;">
+                                        Start General Tutor Session
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            
+                        </div>
+                    </section>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.background = 'rgba(15, 15, 35, 0.98)';
+            } else {
+                navbar.style.background = 'rgba(15, 15, 35, 0.95)';
+            }
+        });
+    </script>
+</body>
+</html>
