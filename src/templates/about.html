@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - TutorBot.ai</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">🧠 TutorBot.ai</div>
+            <div class="nav-links">
+                <a href="/home">Home</a>
+                <a href="#features">Features</a>
+                <a href="#subjects">Subjects</a>
+                <a href="/about">About</a>
+                {% if 'user_id' in session %}
+                    <a href="/logout">Logout</a>
+                {% else %}
+                    <a href="/login">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- About Hero Section -->
+    <section class="hero about-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>About TutorBot.ai</h1>
+                <p>Revolutionizing education through AI-powered personalized learning</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mission Section -->
+    <section class="about-section">
+        <div class="container">
+            <div class="about-content">
+                <h2>Our Mission</h2>
+                <p>TutorBot.ai is dedicated to democratizing education by providing personalized, AI-powered learning experiences. We believe that every student deserves access to high-quality, adaptive tutoring that understands their unique learning style and pace.</p>
+                
+                <div class="mission-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">6+</span>
+                        <span class="stat-label">Subjects</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">24/7</span>
+                        <span class="stat-label">Availability</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">AI-Powered</span>
+                        <span class="stat-label">Tutoring</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Overview -->
+    <section class="features-section">
+        <div class="container">
+            <h2>What Makes TutorBot.ai Special</h2>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">👩‍🏫</div>
+                    <h3>Subject-Specific AI Tutors</h3>
+                    <p>Our AI tutors are specialized in specific domains like DSA, Machine Learning, Database Systems, and more. Each tutor understands the nuances and complexities of their subject area.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Natural Language Understanding</h3>
+                    <p>Ask questions in plain English. Our AI understands context, provides step-by-step explanations, and adapts explanations based on your knowledge level.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🧪</div>
+                    <h3>Interactive Quizzes & Assessments</h3>
+                    <p>Test your knowledge with AI-generated quizzes. Get instant feedback, detailed explanations, and personalized study recommendations.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Progress Tracking & Analytics</h3>
+                    <p>Monitor your learning journey with detailed analytics. Identify strengths, weaknesses, and track improvement over time.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🗂️</div>
+                    <h3>Smart Notebook & Bookmarking</h3>
+                    <p>Save important Q&As, bookmark concepts, and create your personal knowledge base for future reference and review.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Personalized Learning Paths</h3>
+                    <p>AI adapts to your learning style, pace, and goals. Get customized study plans and recommendations based on your progress.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Available Subjects -->
+    <section class="subjects-section">
+        <div class="container">
+            <h2>Available Subjects</h2>
+            <div class="subjects-grid">
+                <div class="subject-card">
+                    <div class="subject-icon">📊</div>
+                    <h3>Data Structures & Algorithms</h3>
+                    <p>Master fundamental algorithms, data structures, and problem-solving techniques. Learn sorting, searching, graph algorithms, and dynamic programming.</p>
+                </div>
+                
+                <div class="subject-card">
+                    <div class="subject-icon">🤖</div>
+                    <h3>Machine Learning</h3>
+                    <p>Explore supervised and unsupervised learning, neural networks, deep learning, and practical ML applications with real-world examples.</p>
+                </div>
+                
+                <div class="subject-card">
+                    <div class="subject-icon">💾</div>
+                    <h3>Database Management Systems</h3>
+                    <p>Learn SQL, database design, normalization, indexing, transactions, and modern database technologies like NoSQL.</p>
+                </div>
+                
+                <div class="subject-card">
+                    <div class="subject-icon">⚙️</div>
+                    <h3>Operating Systems</h3>
+                    <p>Understand process management, memory management, file systems, and the core concepts that power modern computing.</p>
+                </div>
+                
+                <div class="subject-card">
+                    <div class="subject-icon">🌐</div>
+                    <h3>Web Development</h3>
+                    <p>Master frontend and backend development, modern frameworks, APIs, and full-stack web application development.</p>
+                </div>
+                
+                <div class="subject-card">
+                    <div class="subject-icon">🔒</div>
+                    <h3>Computer Networks</h3>
+                    <p>Learn networking protocols, TCP/IP, network security, and the fundamentals of internet communication.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Development Team -->
+    <section class="team-section">
+        <div class="container">
+            <h2>Meet the Development Team</h2>
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="member-avatar">📊</div>
+                    <h3>Viswanath Balla</h3>
+                    <p class="member-role">Full Stack Developer</p>
+                    <p class="member-bio">Passionate about creating innovative educational technology solutions. Specializes in Python, Flask, and AI integration.</p>
+                </div>
+                
+                <div class="team-member">
+                    <div class="member-avatar">🤖</div>
+                    <h3>Yarakaraju Aditya</h3>
+                    <p class="member-role">AI/ML Specialist</p>
+                    <p class="member-bio">Expert focused on natural language processing, machine learning, and creating intelligent tutoring systems.</p>
+                </div>
+                
+                <div class="team-member">
+                    <div class="member-avatar">🎨</div>
+                    <h3>UX/UI Team</h3>
+                    <p class="member-role">Design Specialist</p>
+                    <p class="member-bio">Creating intuitive, accessible, and beautiful user experiences that make learning enjoyable and effective.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Stack -->
+    <section class="tech-section">
+        <div class="container">
+            <h2>Technology Stack</h2>
+            <div class="tech-grid">
+                <div class="tech-category">
+                    <h3>Backend</h3>
+                    <ul>
+                        <li>Python Flask</li>
+                        <li>MySQL Database</li>
+                        <li>SQLAlchemy ORM</li>
+                        <li>Flask-WTF Forms</li>
+                    </ul>
+                </div>
+                
+                <div class="tech-category">
+                    <h3>AI/ML</h3>
+                    <ul>
+                        <li>Google Generative AI</li>
+                        <li>LangChain Framework</li>
+                        <li>Natural Language Processing</li>
+                        <li>Custom AI Tutors</li>
+                    </ul>
+                </div>
+                
+                <div class="tech-category">
+                    <h3>Frontend</h3>
+                    <ul>
+                        <li>HTML5 & CSS3</li>
+                        <li>JavaScript</li>
+                        <li>Responsive Design</li>
+                        <li>Modern UI/UX</li>
+                    </ul>
+                </div>
+                
+                <div class="tech-category">
+                    <h3>Security</h3>
+                    <ul>
+                        <li>Bcrypt Password Hashing</li>
+                        <li>Session Management</li>
+                        <li>Form Validation</li>
+                        <li>Secure Authentication</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <div class="container">
+            <h2>Get in Touch</h2>
+            <div class="contact-content">
+                <p>Have questions, suggestions, or want to contribute to TutorBot.ai? We'd love to hear from you!</p>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <span class="contact-icon">📧</span>
+                        <span>Email: contact@tutorbot.ai</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">🌐</span>
+                        <span>Website: www.tutorbot.ai</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">📱</span>
+                        <span>Support: Available 24/7</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Add scroll effect to navbar
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.background = 'rgba(15, 15, 35, 0.98)';
+            } else {
+                navbar.style.background = 'rgba(15, 15, 35, 0.95)';
+            }
+        });
+    </script>
+</body>
+</html> 
