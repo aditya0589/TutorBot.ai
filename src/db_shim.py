@@ -1,5 +1,6 @@
 import pymysql
 from flask import current_app, g
+import ssl
 
 class MySQL:
     def __init__(self, app=None):
@@ -20,6 +21,8 @@ class MySQL:
         app.config.setdefault('MYSQL_CHARSET', 'utf8')
         app.config.setdefault('MYSQL_SQL_MODE', None)
         app.config.setdefault('MYSQL_CURSORCLASS', None)
+        app.config.setdefault('MYSQL_SSL_CA', None)
+        app.config.setdefault('MYSQL_SSL_DISABLED', False)
 
         if hasattr(app, 'teardown_appcontext'):
             app.teardown_appcontext(self.teardown)
@@ -35,7 +38,7 @@ class MySQL:
         if current_app.config['MYSQL_DB']:
             kwargs['db'] = current_app.config['MYSQL_DB']
         if current_app.config['MYSQL_PORT']:
-            kwargs['port'] = current_app.config['MYSQL_PORT']
+            kwargs['port'] = int(current_app.config['MYSQL_PORT'])
         if current_app.config['MYSQL_UNIX_SOCKET']:
             kwargs['unix_socket'] = current_app.config['MYSQL_UNIX_SOCKET']
         if current_app.config['MYSQL_CONNECT_TIMEOUT']:
@@ -50,6 +53,22 @@ class MySQL:
             kwargs['sql_mode'] = current_app.config['MYSQL_SQL_MODE']
         if current_app.config['MYSQL_CURSORCLASS']:
             kwargs['cursorclass'] = current_app.config['MYSQL_CURSORCLASS']
+        
+        # SSL Configuration
+        if not current_app.config.get('MYSQL_SSL_DISABLED'):
+            ssl_config = {}
+            if current_app.config.get('MYSQL_SSL_CA'):
+                ssl_config['ca'] = current_app.config['MYSQL_SSL_CA']
+            
+            # TiDB requires SSL. If no CA is provided (common in local dev), we still need to enable SSL.
+            # We enable it with check_hostname=False to avoid verification issues if system CAs aren't perfect.
+            host = current_app.config.get('MYSQL_HOST') or ''
+            if 'tidbcloud' in host and not ssl_config:
+                ssl_config['check_hostname'] = False
+
+            # If we have any SSL config, pass it
+            if ssl_config:
+                kwargs['ssl'] = ssl_config
         
         return pymysql.connect(**kwargs)
 

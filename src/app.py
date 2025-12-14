@@ -25,7 +25,11 @@ app.secret_key = os.urandom(24)
 app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST')
 app.config['MYSQL_USER'] = os.getenv('MYSQL_USER')
 app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD')
-app.config['MYSQL_DB'] = os.getenv('MYSQL_DB')
+app.config['MYSQL_DB'] = os.getenv('MYSQL_DB', 'tutorbot')
+app.config['MYSQL_PORT'] = int(os.getenv('MYSQL_PORT', 4000))
+app.config['MYSQL_SSL_CA'] = os.getenv('MYSQL_SSL_CA', None)
+# TiDB requires SSL, so we ensure it's enabled if a CA is provided or if we are in production
+# For now, we rely on the shim to handle it based on the config.
 mysql = MySQL(app)
 
 # Add markdown filter to Jinja2

@@ -99,3 +99,6 @@ CREATE TABLE quiz_attempts (
     user_option VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+--> online database passowrd = "XqejPiJqef7QFFTT"
