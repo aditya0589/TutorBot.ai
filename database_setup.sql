@@ -18,19 +18,7 @@ CREATE TABLE user_notes (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE quiz_attempts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    quiz_no INT NOT NULL,
-    question TEXT NOT NULL,
-    option1 TEXT,
-    option2 TEXT,
-    option3 TEXT,
-    option4 TEXT,
-    correct_option VARCHAR(255),
-    user_option VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+
 
 CREATE TABLE subjects(
 	sub_id INT PRIMARY KEY AUTO_INCREMENT,

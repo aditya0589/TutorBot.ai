@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -258,6 +259,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar">
@@ -290,32 +292,38 @@
                         <div class="subject-card" data-subject="dsa">
                             <span class="subject-icon">⚡</span>
                             <div class="subject-name">Data Structures & Algorithms</div>
-                            <div class="subject-description">Master arrays, linked lists, trees, graphs, and algorithmic problem solving</div>
+                            <div class="subject-description">Master arrays, linked lists, trees, graphs, and algorithmic
+                                problem solving</div>
                         </div>
                         <div class="subject-card" data-subject="ml">
                             <span class="subject-icon">🤖</span>
                             <div class="subject-name">Machine Learning</div>
-                            <div class="subject-description">Learn supervised learning, neural networks, and AI fundamentals</div>
+                            <div class="subject-description">Learn supervised learning, neural networks, and AI
+                                fundamentals</div>
                         </div>
                         <div class="subject-card" data-subject="dbms">
                             <span class="subject-icon">🗄️</span>
                             <div class="subject-name">Database Systems</div>
-                            <div class="subject-description">Understand SQL, normalization, indexing, and database design</div>
+                            <div class="subject-description">Understand SQL, normalization, indexing, and database
+                                design</div>
                         </div>
                         <div class="subject-card" data-subject="os">
                             <span class="subject-icon">⚙️</span>
                             <div class="subject-name">Operating Systems</div>
-                            <div class="subject-description">Learn processes, memory management, file systems, and scheduling</div>
+                            <div class="subject-description">Learn processes, memory management, file systems, and
+                                scheduling</div>
                         </div>
                         <div class="subject-card" data-subject="webdev">
                             <span class="subject-icon">🌐</span>
                             <div class="subject-name">Web Development</div>
-                            <div class="subject-description">Master HTML, CSS, JavaScript, and modern web frameworks</div>
+                            <div class="subject-description">Master HTML, CSS, JavaScript, and modern web frameworks
+                            </div>
                         </div>
                         <div class="subject-card" data-subject="networks">
                             <span class="subject-icon">🌍</span>
                             <div class="subject-name">Computer Networks</div>
-                            <div class="subject-description">Understand protocols, routing, security, and network architecture</div>
+                            <div class="subject-description">Understand protocols, routing, security, and network
+                                architecture</div>
                         </div>
                     </div>
                 </div>
@@ -330,19 +338,23 @@
                         <div class="feature-card" data-feature="chat">
                             <span class="feature-icon">💬</span>
                             <div class="feature-title">AI Chat Tutor</div>
-                            <div class="feature-description">Ask questions and get instant explanations with step-by-step guidance</div>
-                            <div class="feature-benefits">Perfect for: Understanding concepts, getting help with problems</div>
+                            <div class="feature-description">Ask questions and get instant explanations with
+                                step-by-step guidance</div>
+                            <div class="feature-benefits">Perfect for: Understanding concepts, getting help with
+                                problems</div>
                         </div>
                         <div class="feature-card" data-feature="notes">
                             <span class="feature-icon">📝</span>
                             <div class="feature-title">Smart Notes</div>
-                            <div class="feature-description">Create and organize your study notes with AI assistance</div>
+                            <div class="feature-description">Create and organize your study notes with AI assistance
+                            </div>
                             <div class="feature-benefits">Perfect for: Reviewing topics, creating study materials</div>
                         </div>
                         <div class="feature-card" data-feature="quiz">
                             <span class="feature-icon">🧪</span>
                             <div class="feature-title">Practice Quiz</div>
-                            <div class="feature-description">Test your knowledge with AI-generated questions and instant feedback</div>
+                            <div class="feature-description">Test your knowledge with AI-generated questions and instant
+                                feedback</div>
                             <div class="feature-benefits">Perfect for: Self-assessment, exam preparation</div>
                         </div>
                     </div>
@@ -377,14 +389,14 @@
 
         // Subject selection
         document.querySelectorAll('.subject-card').forEach(card => {
-            card.addEventListener('click', function() {
+            card.addEventListener('click', function () {
                 // Remove previous selection
                 document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('selected'));
-                
+
                 // Add selection to clicked card
                 this.classList.add('selected');
                 selectedSubject = this.dataset.subject;
-                
+
                 updateSessionInfo();
                 updateStartButton();
             });
@@ -392,14 +404,14 @@
 
         // Feature selection
         document.querySelectorAll('.feature-card').forEach(card => {
-            card.addEventListener('click', function() {
+            card.addEventListener('click', function () {
                 // Remove previous selection
                 document.querySelectorAll('.feature-card').forEach(c => c.classList.remove('selected'));
-                
+
                 // Add selection to clicked card
                 this.classList.add('selected');
                 selectedFeature = this.dataset.feature;
-                
+
                 updateSessionInfo();
                 updateStartButton();
             });
@@ -436,7 +448,7 @@
 
         function updateStartButton() {
             const startBtn = document.getElementById('startSessionBtn');
-            
+
             if (selectedSubject && selectedFeature) {
                 startBtn.classList.add('active');
             } else {
@@ -445,23 +457,28 @@
         }
 
         // Start session button
-        document.getElementById('startSessionBtn').addEventListener('click', function() {
+        document.getElementById('startSessionBtn').addEventListener('click', function () {
             if (selectedSubject && selectedFeature) {
-                // Redirect to the appropriate tutor page
-                const tutorUrl = `/tutors/${selectedSubject}_tutor`;
-                window.location.href = tutorUrl;
+                if (selectedFeature === 'chat') {
+                    window.location.href = `/tutors/${selectedSubject}_tutor`;
+                } else if (selectedFeature === 'quiz') {
+                    // Pass subject as query param if needed, or just go to quiz page
+                    window.location.href = `/quiz?subject=${selectedSubject}`;
+                } else if (selectedFeature === 'notes') {
+                    window.location.href = `/notes?subject=${selectedSubject}`;
+                }
             }
         });
 
         // Add hover effects for better UX
         document.querySelectorAll('.subject-card, .feature-card').forEach(card => {
-            card.addEventListener('mouseenter', function() {
+            card.addEventListener('mouseenter', function () {
                 if (!this.classList.contains('selected')) {
                     this.style.transform = 'translateY(-3px)';
                 }
             });
-            
-            card.addEventListener('mouseleave', function() {
+
+            card.addEventListener('mouseleave', function () {
                 if (!this.classList.contains('selected')) {
                     this.style.transform = 'translateY(0)';
                 }
@@ -469,4 +486,5 @@
         });
     </script>
 </body>
+
 </html>

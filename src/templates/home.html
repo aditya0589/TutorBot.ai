@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - TutorBot.ai</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
     <nav class="navbar">
         <div class="container">
@@ -27,6 +29,7 @@
             </div>
 
             <div class="dashboard-grid">
+                <!-- Learning Progress Card -->
                 <div class="dashboard-card">
                     <div class="card-header">
                         <div class="card-icon">📊</div>
@@ -51,6 +54,7 @@
                     </div>
                 </div>
 
+                <!-- Quick Actions Card -->
                 <div class="dashboard-card">
                     <div class="card-header">
                         <div class="card-icon">⚡</div>
@@ -60,45 +64,14 @@
                         <p>Start learning or review your progress</p>
                         <div class="quick-actions">
                             <a href="{{ url_for('session_page') }}" class="action-btn">Start New Session</a>
-                            <a href="{{ url_for('review_notes') }}" class="action-btn">Review Notes</a>
+                            <a href="{{ url_for('notes') }}" class="action-btn">My Notes</a>
                             <a href="{{ url_for('quiz') }}" class="action-btn">Take Quiz</a>
                             <a href="{{ url_for('progress_tracker') }}" class="action-btn">View Progress</a>
                         </div>
                     </div>
                 </div>
 
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <div class="card-icon">🕒</div>
-                        <h3 class="card-title">Recent Activity</h3>
-                    </div>
-                    <div class="card-content">
-                        <div class="recent-activity">
-                            <div class="activity-item">
-                                <div class="activity-icon">📚</div>
-                                <div class="activity-content">
-                                    <div class="activity-title">Completed DSA Session</div>
-                                    <div class="activity-time">2 hours ago</div>
-                                </div>
-                            </div>
-                            <div class="activity-item">
-                                <div class="activity-icon">🧪</div>
-                                <div class="activity-content">
-                                    <div class="activity-title">Took ML Quiz</div>
-                                    <div class="activity-time">1 day ago</div>
-                                </div>
-                            </div>
-                            <div class="activity-item">
-                                <div class="activity-icon">💾</div>
-                                <div class="activity-content">
-                                    <div class="activity-title">Saved DBMS Notes</div>
-                                    <div class="activity-time">2 days ago</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+                <!-- Subjects Overview Card -->
                 <div class="dashboard-card">
                     <div class="card-header">
                         <div class="card-icon">📖</div>
@@ -108,16 +81,17 @@
                         <p>Your current learning subjects</p>
                         <div class="stats-grid">
                             {% for subject, percent in subject_progress.items() %}
-                                <div class="stat-item">
-                                    <span class="stat-number">{{ subject }}</span>
-                                    <span class="stat-label">{{ percent }}% Complete</span>
-                                </div>
+                            <div class="stat-item">
+                                <span class="stat-number">{{ subject }}</span>
+                                <span class="stat-label">{{ percent }}% Complete</span>
+                            </div>
                             {% endfor %}
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Sidebar -->
             <div class="sidebar">
                 <div class="sidebar-section">
                     <h4 class="sidebar-title">Available Subjects</h4>
@@ -154,7 +128,7 @@
 
     <script>
         // Add scroll effect to navbar
-        window.addEventListener('scroll', function() {
+        window.addEventListener('scroll', function () {
             const navbar = document.querySelector('.navbar');
             if (window.scrollY > 50) {
                 navbar.style.background = 'rgba(15, 15, 35, 0.98)';

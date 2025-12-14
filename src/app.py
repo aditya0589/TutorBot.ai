@@ -4,7 +4,7 @@ from langchain.memory import ConversationBufferMemory
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 import bcrypt
-from flask_mysqldb import MySQL
+from db_shim import MySQL
 import os
 from tutor import SubjectTutor
 from markdown import markdown as md
