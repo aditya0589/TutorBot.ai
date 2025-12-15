@@ -7,3 +7,5 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.0
+      - key: MYSQL_SSL_CA
+        value: isrgrootx1.pem
