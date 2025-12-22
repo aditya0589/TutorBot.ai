@@ -32,8 +32,13 @@ app.config['MYSQL_SSL_CA'] = os.getenv('MYSQL_SSL_CA', None)
 # For now, we rely on the shim to handle it based on the config.
 mysql = MySQL(app)
 
+from markupsafe import Markup
+
 # Add markdown filter to Jinja2
-app.jinja_env.filters['markdown'] = md
+def markdown_filter(text):
+    return Markup(md(text))
+
+app.jinja_env.filters['markdown'] = markdown_filter
 pio.templates.default = "plotly_white" # Setting a default Plotly template for clean graphs
 
 # Define subjects for the notes and progress forms

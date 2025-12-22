@@ -9,29 +9,31 @@ WTForms
 sqlalchemy==2.0.23
 mysqlclient==2.2.4
 pymysql==1.1.0
-markdown
 
-
-# Environment & Configuration
-python-dotenv==1.0.0
-
-# AI/ML & LLM Integration
-langchain==0.1.0
-langchain-google-genai==0.0.6
-langchain-community==0.0.10
-google-generativeai==0.3.2
-
-# HTTP Requests
-requests==2.31.0
-
-# Basic Security
-bcrypt==4.1.2
+# Web Framework
+flask==3.0.0
+flask-cors==4.0.0
+flask-sqlalchemy==3.1.1
+flask_wtf==1.1.1
+flask-mysqldb==2.0.0
+WTForms
+# Database
+sqlalchemy==2.0.23
+mysqlclient==2.2.4
+pymysql==1.1.0
 
 # File Handling
 python-multipart==0.0.6
 
 # Form email validation
 email-validator
+
+# AI/ML & LLM Integration
+langchain
+langchain-community
+langchain-groq
+langchain-core
+pydantic
 
 # Graph generation
 plotly==5.20.0
