@@ -604,7 +604,7 @@ def quiz():
 
         session['quiz_context'] = {'subject': subject, 'topic': topic}
 
-        query = f"Generate {num_questions} multiple-choice questions on {subject} for {level} level, focusing on {topic}.Each question should have a question text, 4 options (a, b, c, d), one correct answer (index 0-3), and a brief explanation of the correct answer. Return the response as a JSON object with a 'questions' array, where each question is an object with 'question', 'options' (array of 4), 'correct_answer' (index 0-3), and 'explanation' (string). IF REQUIRED QUESTIONS ARE 20: then for sure generate 20 questions without fail in the JSON format"
+        query = f"Generate {num_questions} multiple-choice questions on {subject} for {level} level, focusing on {topic}.Each question should have a question text, 4 options (a, b, c, d), one correct answer (index 0-3), and a brief explanation of the correct answer. Return the response as a JSON object with a 'questions' array, where each question is an object with 'question', 'options' (array of 4), 'correct_answer' (index 0-3), and 'explanation' (string)."
         quiz_raw = tutor.generate_response(subject, query)
         
         try:
