@@ -2,21 +2,10 @@
 flask==3.0.0
 flask-cors==4.0.0
 flask-sqlalchemy==3.1.1
-flask_wtf==1.1.1
+Flask-WTF>=1.2.0
 flask-mysqldb==2.0.0
 WTForms
-# Database
-sqlalchemy==2.0.23
-mysqlclient==2.2.4
-pymysql==1.1.0
 
-# Web Framework
-flask==3.0.0
-flask-cors==4.0.0
-flask-sqlalchemy==3.1.1
-flask_wtf==1.1.1
-flask-mysqldb==2.0.0
-WTForms
 # Database
 sqlalchemy==2.0.23
 mysqlclient==2.2.4
