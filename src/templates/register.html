@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - TutorBot.ai</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
             <div class="logo">🧠 TutorBot.ai</div>
+            <div class="menu-toggle" id="mobile-menu">☰</div>
             <div class="nav-links">
                 <a href="/home">Home</a>
                 <a href="/about">Features</a>
@@ -38,16 +41,16 @@
 
             <form method="POST" action="/register">
                 {{ form.hidden_tag() }}
-                
+
                 <div class="form-group">
                     <label for="name">{{ form.name.label }}</label>
                     {{ form.name(class="form-control", placeholder="Enter your full name") }}
                     {% if form.name.errors %}
-                        <div class="error-message">
-                            {% for error in form.name.errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
+                    <div class="error-message">
+                        {% for error in form.name.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
                     {% endif %}
                 </div>
 
@@ -55,11 +58,11 @@
                     <label for="email">{{ form.email.label }}</label>
                     {{ form.email(class="form-control", placeholder="Enter your email") }}
                     {% if form.email.errors %}
-                        <div class="error-message">
-                            {% for error in form.email.errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
+                    <div class="error-message">
+                        {% for error in form.email.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
                     {% endif %}
                 </div>
 
@@ -67,11 +70,11 @@
                     <label for="password">{{ form.password.label }}</label>
                     {{ form.password(class="form-control", placeholder="Create a password") }}
                     {% if form.password.errors %}
-                        <div class="error-message">
-                            {% for error in form.password.errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
+                    <div class="error-message">
+                        {% for error in form.password.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
                     {% endif %}
                 </div>
 
@@ -86,7 +89,7 @@
 
     <script>
         // Add scroll effect to navbar
-        window.addEventListener('scroll', function() {
+        window.addEventListener('scroll', function () {
             const navbar = document.querySelector('.navbar');
             if (window.scrollY > 50) {
                 navbar.style.background = 'rgba(15, 15, 35, 0.98)';
@@ -95,5 +98,7 @@
             }
         });
     </script>
+    <script src="{{ url_for('static', filename='js/mobile-nav.js') }}"></script>
 </body>
-</html> 
+
+</html>

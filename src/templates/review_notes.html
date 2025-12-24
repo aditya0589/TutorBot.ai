@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,7 +47,8 @@
             flex-wrap: wrap;
         }
 
-        .filter-section select, .filter-section input {
+        .filter-section select,
+        .filter-section input {
             padding: 0.75rem 1rem;
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 10px;
@@ -56,7 +58,8 @@
             transition: all 0.3s ease;
         }
 
-        .filter-section select:focus, .filter-section input:focus {
+        .filter-section select:focus,
+        .filter-section input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -121,11 +124,13 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
             <div class="logo">🧠 TutorBot.ai</div>
+            <div class="menu-toggle" id="mobile-menu">☰</div>
             <div class="nav-links">
                 <a href="{{ url_for('dashboard') }}">Home</a>
                 <a href="{{ url_for('quiz_analytics') }}">Dashboard</a>
@@ -160,11 +165,11 @@
 
             <div class="notes-list" id="notesList">
                 {% for note in notes %}
-                    <div class="note-card">
-                        <div class="note-subject">{{ note[1] }}</div>
-                        <div class="note-content">{{ note[2]|safe }}</div>
-                        <div class="note-time">Saved on: {{ note[3].strftime('%Y-%m-%d %H:%M') }}</div>
-                    </div>
+                <div class="note-card">
+                    <div class="note-subject">{{ note[1] }}</div>
+                    <div class="note-content">{{ note[2]|safe }}</div>
+                    <div class="note-time">Saved on: {{ note[3].strftime('%Y-%m-%d %H:%M') }}</div>
+                </div>
                 {% endfor %}
             </div>
         </div>
@@ -184,42 +189,42 @@
                 },
                 credentials: 'same-origin', // Include cookies for session
             })
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => { throw new Error(`HTTP error! Status: ${response.status}, Body: ${text.substring(0, 100)}...`); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Response data:', data); // Debug log
-                const notesList = document.getElementById('notesList');
-                notesList.innerHTML = ''; // Clear existing notes
-                if (data.notes && Array.isArray(data.notes) && data.notes.length > 0) {
-                    data.notes.forEach(note => {
-                        const noteCard = document.createElement('div');
-                        noteCard.className = 'note-card';
-                        noteCard.innerHTML = `
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => { throw new Error(`HTTP error! Status: ${response.status}, Body: ${text.substring(0, 100)}...`); });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data); // Debug log
+                    const notesList = document.getElementById('notesList');
+                    notesList.innerHTML = ''; // Clear existing notes
+                    if (data.notes && Array.isArray(data.notes) && data.notes.length > 0) {
+                        data.notes.forEach(note => {
+                            const noteCard = document.createElement('div');
+                            noteCard.className = 'note-card';
+                            noteCard.innerHTML = `
                             <div class="note-subject">${note.subject || 'N/A'}</div>
                             <div class="note-content">${note.note_content || 'No content'}</div>
                             <div class="note-time">Saved on: ${note.created_at ? new Date(note.created_at).toLocaleString() : 'N/A'}</div>
                         `;
-                        notesList.appendChild(noteCard);
-                    });
-                } else {
-                    notesList.innerHTML = '<div class="note-card">No notes found.</div>'; // Fallback message
-                }
-            })
-            .catch(error => {
-                console.error('Error applying filters:', error); // Detailed error log
-                const notesList = document.getElementById('notesList');
-                notesList.innerHTML = `<div class="note-card">Error loading notes: ${error.message}. Check console for details.</div>`;
-            });
+                            notesList.appendChild(noteCard);
+                        });
+                    } else {
+                        notesList.innerHTML = '<div class="note-card">No notes found.</div>'; // Fallback message
+                    }
+                })
+                .catch(error => {
+                    console.error('Error applying filters:', error); // Detailed error log
+                    const notesList = document.getElementById('notesList');
+                    notesList.innerHTML = `<div class="note-card">Error loading notes: ${error.message}. Check console for details.</div>`;
+                });
 
             return false; // Prevent default form submission if inside a form
         }
 
         // Add scroll effect to navbar
-        window.addEventListener('scroll', function() {
+        window.addEventListener('scroll', function () {
             const navbar = document.querySelector('.navbar');
             if (window.scrollY > 50) {
                 navbar.style.background = 'rgba(15, 15, 35, 0.98)';
@@ -228,5 +233,7 @@
             }
         });
     </script>
+    <script src="{{ url_for('static', filename='js/mobile-nav.js') }}"></script>
 </body>
+
 </html>

@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TutorBot.ai - AI-Powered Learning Assistant</title>
     <link rel="stylesheet" href="../static/css/style.css">
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
             <div class="logo">🧠 TutorBot.ai</div>
+            <div class="menu-toggle" id="mobile-menu">☰</div>
             <div class="nav-links">
                 <a href="#features">Features</a>
                 <a href="#subjects">Subjects</a>
@@ -27,12 +30,14 @@
             <div class="floating-element"></div>
             <div class="floating-element"></div>
         </div>
-        
+
         <div class="container">
             <div class="hero-content">
                 <h1>Master Any Subject with AI</h1>
-                <p>Experience personalized learning with AI tutors specialized in DSA, Machine Learning, Database Systems, Operating Systems, Web Development, and more. Get instant explanations, practice quizzes, and track your progress.</p>
-                
+                <p>Experience personalized learning with AI tutors specialized in DSA, Machine Learning, Database
+                    Systems, Operating Systems, Web Development, and more. Get instant explanations, practice quizzes,
+                    and track your progress.</p>
+
                 <div class="cta-buttons">
                     <a href="/register" class="btn btn-primary">Start Learning Free</a>
                     <a href="#features" class="btn btn-secondary">Learn More</a>
@@ -45,38 +50,43 @@
     <section class="features" id="features">
         <div class="container">
             <h2 class="section-title">Why Choose TutorBot.ai?</h2>
-            
+
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">👩‍🏫</div>
                     <h3>Subject-Specific Tutors</h3>
-                    <p>AI tutors specialized in DSA, ML, DBMS, OS, Web Dev, and more. Each tutor understands the nuances of their domain.</p>
+                    <p>AI tutors specialized in DSA, ML, DBMS, OS, Web Dev, and more. Each tutor understands the nuances
+                        of their domain.</p>
                 </div>
-                
+
                 <div class="feature-card">
                     <div class="feature-icon">🧠</div>
                     <h3>Natural Q&A Interface</h3>
-                    <p>Ask questions in plain English. Get step-by-step explanations, code examples, and visual diagrams instantly.</p>
+                    <p>Ask questions in plain English. Get step-by-step explanations, code examples, and visual diagrams
+                        instantly.</p>
                 </div>
-                
+
                 <div class="feature-card">
                     <div class="feature-icon">🧪</div>
                     <h3>Quiz & Evaluation</h3>
-                    <p>Test your knowledge with AI-generated quizzes. Get instant feedback and personalized study recommendations.</p>
+                    <p>Test your knowledge with AI-generated quizzes. Get instant feedback and personalized study
+                        recommendations.</p>
                 </div>
-                
+
                 <div class="feature-card">
                     <div class="feature-icon">📊</div>
                     <h3>Progress Tracking</h3>
-                    <p>Monitor your learning journey with detailed analytics. Identify strengths and areas for improvement.</p>
+                    <p>Monitor your learning journey with detailed analytics. Identify strengths and areas for
+                        improvement.</p>
                 </div>
-                
+
                 <div class="feature-card">
                     <div class="feature-icon">🗂️</div>
                     <h3>Smart Notebook</h3>
-                    <p>Save important Q&As, bookmark concepts, and create your personal knowledge base for future reference.</p>
+                    <p>Save important Q&As, bookmark concepts, and create your personal knowledge base for future
+                        reference.</p>
                 </div>
-                
+
             </div>
         </div>
     </section>
@@ -93,7 +103,7 @@
         });
 
         // Add scroll effect to navbar
-        window.addEventListener('scroll', function() {
+        window.addEventListener('scroll', function () {
             const navbar = document.querySelector('.navbar');
             if (window.scrollY > 50) {
                 navbar.style.background = 'rgba(15, 15, 35, 0.98)';
@@ -102,5 +112,7 @@
             }
         });
     </script>
+    <script src="../static/js/mobile-nav.js"></script>
 </body>
+
 </html>

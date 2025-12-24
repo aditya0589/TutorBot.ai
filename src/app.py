@@ -268,8 +268,8 @@ def quiz_analytics():
     )
 
     bar_fig.update_traces(textposition='outside')
-    bar_fig.update_layout(yaxis_range=[0, 100], height=600, width=1000)
-    sub_bar = bar_fig.to_html(full_html=False)
+    bar_fig.update_layout(yaxis_range=[0, 100], height=600, autosize=True)
+    sub_bar = bar_fig.to_html(full_html=False, config={'responsive': True, 'displayModeBar': False})
     
     # --- 2. Subject-wise Line Graph (Performance Over Time) ---
     df['created_at'] = pd.to_datetime(df['created_at'])
@@ -305,11 +305,10 @@ def quiz_analytics():
         yaxis_autorange=True,
         autosize=True,
         height=600,
-        width=1000,
         margin=dict(l=40, r=40, t=80, b=40)
     )
 
-    sub_line = line_fig.to_html(full_html=False)
+    sub_line = line_fig.to_html(full_html=False, config={'responsive': True, 'displayModeBar': False})
 
     # --- 3. Topic-wise Bargraphs (Accuracy per Topic per Subject) ---
     accuracy_df_3 = df.groupby(['subject', 'topic']).agg(
@@ -336,8 +335,8 @@ def quiz_analytics():
             text='accuracy_percent'
         )
         fig.update_traces(textposition='outside')
-        fig.update_layout(yaxis_range=[0, 100], height=600, width=1000)
-        return fig.to_html(full_html=False)
+        fig.update_layout(yaxis_range=[0, 100], height=600, autosize=True)
+        return fig.to_html(full_html=False, config={'responsive': True, 'displayModeBar': False})
 
     sub_dsa = generate_topic_plot('dsa', accuracy_df_3)
     sub_ml = generate_topic_plot('ml', accuracy_df_3)

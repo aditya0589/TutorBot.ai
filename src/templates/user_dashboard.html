@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,9 +19,11 @@
             text-align: center;
             margin-bottom: 30px;
             padding: 10px 0;
-            background-color: rgba(255, 255, 255, 0.05); /* Light background for visibility */
+            background-color: rgba(255, 255, 255, 0.05);
+            /* Light background for visibility */
             border-radius: 8px;
         }
+
         .icon {
             display: inline-block;
             padding: 10px 15px;
@@ -32,34 +35,40 @@
             color: white;
             transition: background-color 0.3s, transform 0.1s;
         }
+
         .icon:hover {
             background-color: #00c6ff;
             color: #151523;
             transform: translateY(-2px);
         }
+
         .icon.active {
             background-color: #00c6ff;
             color: #151523;
             border-color: #00c6ff;
         }
-        
+
         /* Class to hide the NEW graphs initially and when not selected */
         .toggle-graph-container {
             border: 2px solid #333;
             padding: 20px;
             margin-top: 15px;
-            min-height: 300px; /* Ensure a minimum height for visible graphs */
+            min-height: 300px;
+            /* Ensure a minimum height for visible graphs */
         }
+
         .hidden-graph {
             display: none;
         }
     </style>
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
             <div class="logo">🧠 TutorBot.ai</div>
+            <div class="menu-toggle" id="mobile-menu">☰</div>
             <div class="nav-links">
                 <a href="{{ url_for('dashboard') }}">Home</a>
                 <a href="{{ url_for('quiz_analytics') }}">Dashboard</a>
@@ -82,7 +91,7 @@
         <br><br><br>
 
         <h2 style="color: #00c6ff;">Detailed Analysis</h2>
-        
+
         <div class="icon-bar">
             <span class="icon active" onclick="toggleGraph('new-graph-1', this)">📈 DSA</span>
             <span class="icon" onclick="toggleGraph('new-graph-2', this)">🏆 ML</span>
@@ -91,13 +100,13 @@
             <span class="icon" onclick="toggleGraph('new-graph-5', this)">🎯 Web Dev</span>
             <span class="icon" onclick="toggleGraph('new-graph-6', this)">🎯 CN</span>
         </div>
-        
+
         <br>
 
         <div id="new-graph-1" class="toggle-graph-container">
             {{ sub_dsa | safe }}
         </div>
-        
+
         <div id="new-graph-2" class="toggle-graph-container hidden-graph">
             {{ sub_ml | safe }}
         </div>
@@ -120,7 +129,7 @@
     </div>
     <script>
         // Add scroll effect to navbar
-        window.addEventListener('scroll', function() {
+        window.addEventListener('scroll', function () {
             const navbar = document.querySelector('.navbar');
             if (window.scrollY > 50) {
                 navbar.style.background = 'rgba(15, 15, 35, 0.98)';
@@ -154,5 +163,7 @@
             clickedIcon.classList.add('active'); // <-- This line highlights the current icon
         }
     </script>
+    <script src="{{ url_for('static', filename='js/mobile-nav.js') }}"></script>
 </body>
+
 </html>
