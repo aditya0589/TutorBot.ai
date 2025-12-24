@@ -19,7 +19,7 @@ import plotly.io as pio # Added for Plotly template setting
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = os.environ.get('SECRET_KEY', 'tutorbot-secret-key-dev')
 
 # MySQL connection
 app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST')
