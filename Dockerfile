@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 # Set the working directory in the container
 WORKDIR /app
@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
-COPY requirements_fixed.txt ./requirements.txt
+COPY src/requirements.txt ./requirements.txt
 
 # Install any needed packages specified in requirements.txt
 # Adding gunicorn for production server
@@ -22,6 +22,7 @@ RUN pip install --no-cache-dir -r requirements.txt && \
 # Copy the current directory contents into the container at /app
 COPY src/ ./src/
 COPY .env .
+COPY isrgrootx1.pem .
 
 # Make port 5000 available to the world outside this container
 EXPOSE 5000

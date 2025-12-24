@@ -17,9 +17,15 @@ python-multipart==0.0.6
 # Form email validation
 email-validator
 
+# Security & Utilities
+bcrypt==4.1.2
+python-dotenv==1.0.0
+requests==2.31.0
+markdown
+
 # AI/ML & LLM Integration
-langchain
-langchain-community
+langchain==0.1.0
+langchain-community==0.0.10
 langchain-groq
 langchain-core
 pydantic
