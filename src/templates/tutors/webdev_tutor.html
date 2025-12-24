@@ -151,12 +151,73 @@
       font-size: 14px;
       resize: vertical;
     }
+
+    /* Mobile Responsiveness */
+    .menu-toggle {
+      display: none;
+      font-size: 24px;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 15px 20px;
+        flex-wrap: wrap;
+        /* Allow wrapping */
+      }
+
+      .nav-links {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        text-align: center;
+        margin-top: 15px;
+        background-color: #121230;
+        padding-bottom: 10px;
+      }
+
+      .nav-links.active {
+        display: flex;
+      }
+
+      .nav-links a {
+        margin: 10px 0;
+        display: block;
+        margin-left: 0;
+        /* Reset margin */
+      }
+
+      .menu-toggle {
+        display: block;
+      }
+
+      .main-container {
+        flex-direction: column;
+        padding: 10px;
+      }
+
+      .chat-section {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 20px;
+        height: 500px;
+        /* Fixed height for chat on mobile */
+      }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+        max-height: 500px;
+      }
+    }
   </style>
 </head>
 
 <body>
   <div class="navbar">
     <div class="logo">💬 TutorBot.ai</div>
+    <div class="menu-toggle" id="mobile-menu">☰</div>
     <div class="nav-links">
       <a href="{{ url_for('dashboard') }}">Home</a>
       <a href="{{ url_for('quiz_analytics') }}">Dashboard</a>
@@ -213,6 +274,7 @@
       </div>
     </div>
   </div>
+  <script src="{{ url_for('static', filename='js/mobile-nav.js') }}"></script>
 </body>
 
 </html>
