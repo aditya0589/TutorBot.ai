@@ -17,6 +17,7 @@
                 <a href="{{ url_for('dashboard') }}">Home</a>
                 <a href="{{ url_for('quiz_analytics') }}">Dashboard</a>
                 <a href="{{ url_for('subjects') }}">Subjects</a>
+                <a href="{{ url_for('settings') }}">Settings</a>
                 <a href="{{ url_for('logout') }}">Logout</a>
             </div>
         </div>
@@ -40,15 +41,15 @@
                         <p>Track your progress across all subjects</p>
                         <div class="stats-grid">
                             <div class="stat-item">
-                                <span class="stat-number">5</span>
+                                <span class="stat-number">{{ total_subjects_count }}</span>
                                 <span class="stat-label">Subjects</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-number">87%</span>
+                                <span class="stat-number">{{ overall_completion }}%</span>
                                 <span class="stat-label">Completion</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-number">23</span>
+                                <span class="stat-number">{{ total_sessions }}</span>
                                 <span class="stat-label">Sessions</span>
                             </div>
                         </div>
@@ -110,7 +111,7 @@
                     <h4 class="sidebar-title">Quick Stats</h4>
                     <div class="stats-grid">
                         <div class="stat-item">
-                            <span class="stat-number">12</span>
+                            <span class="stat-number">{{ hours_learned }}</span>
                             <span class="stat-label">Hours Learned</span>
                         </div>
                         <div class="stat-item">

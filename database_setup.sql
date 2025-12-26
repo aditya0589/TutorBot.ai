@@ -100,5 +100,13 @@ CREATE TABLE quiz_attempts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS user_sessions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    logout_time TIMESTAMP NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 
 --> online database passowrd = "XqejPiJqef7QFFTT"

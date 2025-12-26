@@ -152,6 +152,18 @@ def login():
             session['user_id'] = user[0]
             # Fetch user name for session (useful for dashboard)
             session['user_name'] = user[1] 
+            
+            # Start User Session
+            try:
+                cursor = mysql.connection.cursor()
+                cursor.execute('INSERT INTO user_sessions (user_id) VALUES (%s)', (user[0],))
+                mysql.connection.commit()
+                session['session_id'] = cursor.lastrowid
+                cursor.close()
+            except Exception as e:
+                print(f"Error starting session: {e}")
+                # Don't block login if session tracking fails
+            
             flash('Login successful!', 'success')
             return redirect(url_for('dashboard'))
         else:
@@ -199,20 +211,46 @@ def dashboard():
     cursor.execute("SELECT COUNT(*) FROM user_notes WHERE user_id = %s", (user_id,))
     notes_saved = cursor.fetchone()[0]
 
-    hours_learned = 0 # Placeholder for hours learned
+    # Calculate Session Metrics
+    cursor.execute("SELECT COUNT(*) FROM user_sessions WHERE user_id = %s", (user_id,))
+    total_sessions = cursor.fetchone()[0]
+
+    # Calculate total duration in seconds. Handles active sessions (logout_time is NULL) by using NOW()
+    cursor.execute("""
+        SELECT SUM(TIMESTAMPDIFF(SECOND, login_time, IFNULL(logout_time, NOW()))) 
+        FROM user_sessions 
+        WHERE user_id = %s
+    """, (user_id,))
+    total_seconds = cursor.fetchone()[0]
+    
+    if total_seconds:
+        hours_learned = round(float(total_seconds) / 3600, 1) # Convert to hours, 1 decimal place
+    else:
+        hours_learned = 0
 
     cursor.close()
+    
+    # Uses the utility function from your original code
+    subject_progress = get_user_progress(user_id) 
 
-    subject_progress = get_user_progress(user_id) # Uses the utility function from your original code
+    # Calculate Subject Stats
+    total_subjects_count = len(subject_progress)
+    if total_subjects_count > 0:
+        overall_completion = int(round(sum(subject_progress.values()) / total_subjects_count))
+    else:
+        overall_completion = 0
 
     # Renders the main dashboard page (using your original template name 'home.html')
     return render_template(
         'home.html',
         user_name=user_name,
         hours_learned=hours_learned,
+        total_sessions=total_sessions,
         quizzes_taken=quizzes_taken,
         notes_saved=notes_saved,
-        subject_progress=subject_progress
+        subject_progress=subject_progress,
+        total_subjects_count=total_subjects_count,
+        overall_completion=overall_completion
     )
 
 # CONFLICT RESOLUTION: This route now uses the most comprehensive analytics logic
@@ -822,6 +860,16 @@ def delete_account():
 
 @app.route('/logout')
 def logout():
+    # End User Session
+    if 'session_id' in session:
+        try:
+            cursor = mysql.connection.cursor()
+            cursor.execute('UPDATE user_sessions SET logout_time = NOW() WHERE id = %s', (session['session_id'],))
+            mysql.connection.commit()
+            cursor.close()
+        except Exception as e:
+            print(f"Error ending session: {e}")
+
     session.clear() # Clears all session data
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
